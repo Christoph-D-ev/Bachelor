@@ -1,0 +1,535 @@
+\section{Laufzeit}
+
+Deutlich zu sehen ist der Zeitunterschied zwischen den verschiedenen Hashfunktionen. Wobei im Durchschnitt das Buzhashing am schnellsten war, gefolgt vom Rabin-Karp-Hash und djb2 als langsamster.\\
+Alle drei sind deutlich langsamer als gzip, mit lediglich 34 Sekunden, jedoch deutlich schneller als lzss\_lcp.\\
+Die Version mit dem Buzhash ist die schnellste, da sie gegenüber dem Rabin-Karp-Hash kein Modulo oder Subtraktion  durchführen muss. Kollisionen treten für beide Versionen selten auf, sind jedoch für das Buzhashing häufiger.
+Der ntHash weist eine minimale Beschleunigung auf.
+Die längere Laufzeit von djb2 lässt sich durch die häufigeren Kollisionen erklären. Da djb2 nur Hashwerte in 32Bit Größe erzeugt, müssen wir in fast jedem Suchdurchlauf Kollisionen beachten. Dieses Problem spitzt sich zu je mehr Chains bzw. Groups existieren.\\
+Im Allgemeinen folgt die Laufzeit dem zu erwartenden Muster, je weiter der Abstand zwischen maximaler und minimaler Faktorgröße ist desto länger ist die Laufzeit.
+
+\begin{multicols}{2}
+	gzip: 
+	\begin{outline}
+	\1[]
+	\2[] sdna.200MB  34.3s
+	\2[] proteins.200MB 7.6s
+	\2[] english.200MB 12.8s
+	\end{outline}
+\columnbreak
+\texttt{  }
+\begin{outline}
+	\1[]
+	\2[] einstein.de.txt 4.2s
+	\2[] random.100MB 2.7s
+	\2[] dblp.xml.200MB: 4.1s
+\end{outline}
+\end{multicols}
+
+lzss\_lcp:
+\begin{multicols}{2}
+	\begin{outline}
+		\1[]
+		\2[] sdna.200MB:  5279s
+		\2[] proteins.200MB: 2725s
+		\2[] english.200MB: 2833s
+	\end{outline}
+	\columnbreak
+	\begin{outline}
+		\1[]
+		\2[] dblp.xml.200MB: 2519s
+		\2[] einstein.de.txt: 1531s
+		\2[] random.100MB: 1548s
+	\end{outline}
+\end{multicols}
+
+%%%%% dna
+
+\begin{table}[h]
+	\caption{djb2 Laufzeit für sdna.200MB in s \emph{farbig}}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  & & \cellcolor[HTML]{99E600}276 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  & & \cellcolor[HTML]{99E600}338 & \cellcolor[HTML]{99E600}451 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}458 & \cellcolor[HTML]{99E600}580 & \cellcolor[HTML]{99E600}699 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}557 & \cellcolor[HTML]{99E600}756 & \cellcolor[HTML]{99E600}900 & \cellcolor[HTML]{99E600}1012 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}698 & \cellcolor[HTML]{99E600}1000 & \cellcolor[HTML]{99E600}1068 & \cellcolor[HTML]{99E600}1203 & \cellcolor[HTML]{E69900}1348 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}797 & \cellcolor[HTML]{99E600}1103 & \cellcolor[HTML]{E69900}1361 & \cellcolor[HTML]{E69900}1536 & \cellcolor[HTML]{E69900}1687 & \cellcolor[HTML]{E69900}1843 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}828 & \cellcolor[HTML]{99E600}1249 & \cellcolor[HTML]{E69900}1554 & \cellcolor[HTML]{E69900}1825 & \cellcolor[HTML]{E69900}1994 & \cellcolor[HTML]{E69900}2070 & \cellcolor[HTML]{E69900}2283 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}951 & \cellcolor[HTML]{E69900}1327 & \cellcolor[HTML]{E69900}1689 & \cellcolor[HTML]{E69900}2027 & \cellcolor[HTML]{E60000}2271 & \cellcolor[HTML]{E60000}2381 & \cellcolor[HTML]{E60000}2587 & \cellcolor[HTML]{E60000}2642 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}1062 & \cellcolor[HTML]{E69900}1550 & \cellcolor[HTML]{E69900}1886 & \cellcolor[HTML]{E60000}2285 & \cellcolor[HTML]{E60000}2576 & \cellcolor[HTML]{E60000}2841 & \cellcolor[HTML]{E60000}3056 & \cellcolor[HTML]{E60000}3104 & \cellcolor[HTML]{E60000}3173 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{E69900}1649 & \cellcolor[HTML]{E60000}2336 & \cellcolor[HTML]{E60000}2672 & \cellcolor[HTML]{E60000}2916 & \cellcolor[HTML]{E60000}3196 & \cellcolor[HTML]{9900E6}3575 & \cellcolor[HTML]{9900E6}3787 & \cellcolor[HTML]{9900E6}3742 & \cellcolor[HTML]{9900E6}4172 & \cellcolor[HTML]{4C00E6}4266 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{E60000}2776 & \cellcolor[HTML]{9900E6}3372 & \cellcolor[HTML]{9900E6}3949 & \cellcolor[HTML]{4C00E6}4294 & \cellcolor[HTML]{4C00E6}4614 & \cellcolor[HTML]{4C00E6}4945 & \cellcolor[HTML]{4C00E6}5303 & \cellcolor[HTML]{4C00E6}5445 & \cellcolor[HTML]{4C00E6}5519 & \cellcolor[HTML]{4C00E6}5626 & \cellcolor[HTML]{4C00E6}5987 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{99E600}565 & \cellcolor[HTML]{E69900}1496 & \cellcolor[HTML]{E60000}2506 & \cellcolor[HTML]{9900E6}3083 & \cellcolor[HTML]{9900E6}3357 & \cellcolor[HTML]{9900E6}3740 & \cellcolor[HTML]{4C00E6}4104 & \cellcolor[HTML]{4C00E6}4365 & \cellcolor[HTML]{4C00E6}4429 & \cellcolor[HTML]{4C00E6}4815 & \cellcolor[HTML]{4C00E6}4920 & \cellcolor[HTML]{4C00E6}5120 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{99E600}325 & \cellcolor[HTML]{99E600}664 & \cellcolor[HTML]{E69900}1526 & \cellcolor[HTML]{E60000}2451 & \cellcolor[HTML]{9900E6}3028 & \cellcolor[HTML]{9900E6}3371 & \cellcolor[HTML]{9900E6}3766 & \cellcolor[HTML]{9900E6}3890 & \cellcolor[HTML]{4C00E6}4271 & \cellcolor[HTML]{4C00E6}4573 & \cellcolor[HTML]{4C00E6}5060 & \cellcolor[HTML]{4C00E6}4672 & \cellcolor[HTML]{4C00E6}5231 \\ \cline{1-1}
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14}
+		\end{tabular}
+	}
+\end{table}
+
+\begin{table}[h]
+	\caption{Buzhashing Laufzeit für sdna.200MB in s \emph{farbig}}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}179 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}174 & \cellcolor[HTML]{99E600}259 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}191 & \cellcolor[HTML]{99E600}258 & \cellcolor[HTML]{99E600}349 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}196 & \cellcolor[HTML]{99E600}271 & \cellcolor[HTML]{99E600}340 & \cellcolor[HTML]{E69900}444 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}209 & \cellcolor[HTML]{99E600}289 & \cellcolor[HTML]{99E600}360 & \cellcolor[HTML]{E69900}456 & \cellcolor[HTML]{E69900}551 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}223 & \cellcolor[HTML]{99E600}307 & \cellcolor[HTML]{99E600}390 & \cellcolor[HTML]{E69900}464 & \cellcolor[HTML]{E69900}585 & \cellcolor[HTML]{E69900}636 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}232 & \cellcolor[HTML]{99E600}324 & \cellcolor[HTML]{99E600}410 & \cellcolor[HTML]{E69900}492 & \cellcolor[HTML]{E69900}558 & \cellcolor[HTML]{E60000}683 & \cellcolor[HTML]{E60000}731 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}237 & \cellcolor[HTML]{99E600}334 & \cellcolor[HTML]{E69900}427 & \cellcolor[HTML]{E69900}514 & \cellcolor[HTML]{E69900}591 & \cellcolor[HTML]{E60000}677 & \cellcolor[HTML]{E60000}799 & \cellcolor[HTML]{E60000}874 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}245 & \cellcolor[HTML]{99E600}344 & \cellcolor[HTML]{E69900}442 & \cellcolor[HTML]{E69900}541 & \cellcolor[HTML]{E69900}619 & \cellcolor[HTML]{E60000}709 & \cellcolor[HTML]{E60000}783 & \cellcolor[HTML]{E60000}927 & \cellcolor[HTML]{9900E6}987 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}272 & \cellcolor[HTML]{99E600}387 & \cellcolor[HTML]{E69900}485 & \cellcolor[HTML]{E69900}582 & \cellcolor[HTML]{E60000}676 & \cellcolor[HTML]{E60000}767 & \cellcolor[HTML]{E60000}833 & \cellcolor[HTML]{9900E6}911 & \cellcolor[HTML]{9900E6}1096 & \cellcolor[HTML]{9900E6}1126 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{99E600}302 & \cellcolor[HTML]{E69900}419 & \cellcolor[HTML]{E69900}533 & \cellcolor[HTML]{E69900}636 & \cellcolor[HTML]{E60000}739 & \cellcolor[HTML]{E60000}831 & \cellcolor[HTML]{9900E6}914 & \cellcolor[HTML]{9900E6}989 & \cellcolor[HTML]{9900E6}1072 & \cellcolor[HTML]{4C00E6}1240 & \cellcolor[HTML]{4C00E6}1361 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{99E600}227 & \cellcolor[HTML]{99E600}357 & \cellcolor[HTML]{E69900}480 & \cellcolor[HTML]{E69900}581 & \cellcolor[HTML]{E60000}694 & \cellcolor[HTML]{E60000}780 & \cellcolor[HTML]{E60000}878 & \cellcolor[HTML]{9900E6}969 & \cellcolor[HTML]{9900E6}1061 & \cellcolor[HTML]{9900E6}1122 & \cellcolor[HTML]{4C00E6}1210 & \cellcolor[HTML]{4C00E6}1396 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{99E600}359 & \cellcolor[HTML]{99E600}291 & \cellcolor[HTML]{99E600}411 & \cellcolor[HTML]{E69900}534 & \cellcolor[HTML]{E69900}660 & \cellcolor[HTML]{E60000}748 & \cellcolor[HTML]{E60000}836 & \cellcolor[HTML]{9900E6}939 & \cellcolor[HTML]{9900E6}1016 & \cellcolor[HTML]{9900E6}1117 & \cellcolor[HTML]{4C00E6}1183 & \cellcolor[HTML]{4C00E6}1360 & \cellcolor[HTML]{4C00E6}1393 \\ \cline{1-1} \cline{11-14} 
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+
+\begin{table}[h]
+	\caption{Rabin-Karp-Hash Laufzeit für sdna.200MB in s \emph{farbig}}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}201 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}293 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}223 & \cellcolor[HTML]{99E600}316 & \cellcolor[HTML]{99E600}401 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}324 & \cellcolor[HTML]{99E600}421 & \cellcolor[HTML]{E69900}597 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}291 & \cellcolor[HTML]{99E600}409 & \cellcolor[HTML]{E69900}518 & \cellcolor[HTML]{E69900}621 & \cellcolor[HTML]{E69900}722 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}309 & \cellcolor[HTML]{99E600}360 & \cellcolor[HTML]{E69900}554 & \cellcolor[HTML]{E69900}562 & \cellcolor[HTML]{E69900}660 & \cellcolor[HTML]{E60000}861 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}319 & \cellcolor[HTML]{99E600}459 & \cellcolor[HTML]{E69900}577 & \cellcolor[HTML]{E69900}593 & \cellcolor[HTML]{E69900}804 & \cellcolor[HTML]{E60000}906 & \cellcolor[HTML]{E60000}860 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}269 & \cellcolor[HTML]{99E600}387 & \cellcolor[HTML]{99E600}503 & \cellcolor[HTML]{E69900}701 & \cellcolor[HTML]{E69900}719 & \cellcolor[HTML]{E69900}811 & \cellcolor[HTML]{E60000}907 & \cellcolor[HTML]{E60000}987 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}279 & \cellcolor[HTML]{99E600}481 & \cellcolor[HTML]{E69900}519 & \cellcolor[HTML]{E69900}639 & \cellcolor[HTML]{E69900}736 & \cellcolor[HTML]{E60000}851 & \cellcolor[HTML]{E60000}1115 & \cellcolor[HTML]{E60000}1039 & \cellcolor[HTML]{9900E6}1328 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}364 & \cellcolor[HTML]{99E600}439 & \cellcolor[HTML]{E69900}667 & \cellcolor[HTML]{E69900}677 & \cellcolor[HTML]{E60000}924 & \cellcolor[HTML]{E60000}909 & \cellcolor[HTML]{9900E6}1188 & \cellcolor[HTML]{9900E6}1310 & \cellcolor[HTML]{9900E6}1478 & \cellcolor[HTML]{9900E6}1312 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{99E600}339 & \cellcolor[HTML]{99E600}488 & \cellcolor[HTML]{E69900}612 & \cellcolor[HTML]{E69900}740 & \cellcolor[HTML]{E60000}849 & \cellcolor[HTML]{E60000}970 & \cellcolor[HTML]{E60000}1081 & \cellcolor[HTML]{9900E6}1394 & \cellcolor[HTML]{9900E6}1500 & \cellcolor[HTML]{9900E6}1412 & \cellcolor[HTML]{4C00E6}1809 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{99E600}348 & \cellcolor[HTML]{99E600}502 & \cellcolor[HTML]{E69900}555 & \cellcolor[HTML]{E60000}830 & \cellcolor[HTML]{E69900}806 & \cellcolor[HTML]{E60000}1109 & \cellcolor[HTML]{9900E6}1253 & \cellcolor[HTML]{9900E6}1160 & \cellcolor[HTML]{9900E6}1255 & \cellcolor[HTML]{9900E6}1354 & \cellcolor[HTML]{4C00E6}1731 & \cellcolor[HTML]{4C00E6}1538 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{E69900}517 & \cellcolor[HTML]{99E600}403 & \cellcolor[HTML]{E69900}627 & \cellcolor[HTML]{E69900}629 & \cellcolor[HTML]{E60000}879 & \cellcolor[HTML]{E60000}890 & \cellcolor[HTML]{E60000}987 & \cellcolor[HTML]{9900E6}1200 & \cellcolor[HTML]{4C00E6}1429 & \cellcolor[HTML]{9900E6}1360 & \cellcolor[HTML]{4C00E6}1525 & \cellcolor[HTML]{4C00E6}1730 & \cellcolor[HTML]{4C00E6}1516 \\ \hline
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+\begin{table}[h]
+	\caption{ntHash Laufzeit für sdna.200MB in s \emph{farbig} }
+	\label{tab:my-table}
+	\begin{tabular}{lrrrrrrrrrrrrr}
+		\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+		\cline{1-1}
+		\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  &
+		\cellcolor[HTML]{99E600}175 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  &
+		\cellcolor[HTML]{99E600}180 & \cellcolor[HTML]{99E600}251 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  &
+		\cellcolor[HTML]{99E600}185 & \cellcolor[HTML]{99E600}261 &
+		\cellcolor[HTML]{99E600}333 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  &
+		\cellcolor[HTML]{99E600}208 & \cellcolor[HTML]{99E600}270 &
+		\cellcolor[HTML]{99E600}340 & \cellcolor[HTML]{E69900}412 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  &
+		\cellcolor[HTML]{99E600}200 & \cellcolor[HTML]{99E600}315 &
+		\cellcolor[HTML]{99E600}353 & \cellcolor[HTML]{E69900}429 &
+		\cellcolor[HTML]{E69900}502 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  &
+		\cellcolor[HTML]{99E600}252 & \cellcolor[HTML]{99E600}296 &
+		\cellcolor[HTML]{E69900}430 & \cellcolor[HTML]{E69900}450 &
+		\cellcolor[HTML]{E69900}526 & \cellcolor[HTML]{E69900}599 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{128} &  &  &  &  &  &  &
+		\cellcolor[HTML]{99E600}252 & \cellcolor[HTML]{99E600}355 &
+		\cellcolor[HTML]{E69900}409 & \cellcolor[HTML]{E69900}516 &
+		\cellcolor[HTML]{E69900}555 & \cellcolor[HTML]{E60000}632 &
+		\cellcolor[HTML]{E60000}704 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}239 &
+		\cellcolor[HTML]{99E600}361 & \cellcolor[HTML]{E69900}488 &
+		\cellcolor[HTML]{E69900}529 & \cellcolor[HTML]{E69900}609 &
+		\cellcolor[HTML]{E60000}665 & \cellcolor[HTML]{E60000}742 &
+		\cellcolor[HTML]{E60000}815 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}251 &
+		\cellcolor[HTML]{99E600}353 & \cellcolor[HTML]{E69900}464 &
+		\cellcolor[HTML]{E69900}594 & \cellcolor[HTML]{E60000}664 &
+		\cellcolor[HTML]{E60000}721 & \cellcolor[HTML]{E60000}782 &
+		\cellcolor[HTML]{E60000}858 & \cellcolor[HTML]{9900E6}931 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}273 &
+		\cellcolor[HTML]{99E600}381 & \cellcolor[HTML]{E69900}485 &
+		\cellcolor[HTML]{E69900}600 & \cellcolor[HTML]{E60000}700 &
+		\cellcolor[HTML]{E60000}811 & \cellcolor[HTML]{E60000}836 &
+		\cellcolor[HTML]{9900E6}904 & \cellcolor[HTML]{9900E6}983 &
+		\cellcolor[HTML]{9900E6}1055 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{99E600}299 &
+		\cellcolor[HTML]{E69900}416 & \cellcolor[HTML]{E69900}527 &
+		\cellcolor[HTML]{E60000}703 & \cellcolor[HTML]{E60000}788 &
+		\cellcolor[HTML]{E60000}870 & \cellcolor[HTML]{9900E6}1002 &
+		\cellcolor[HTML]{9900E6}1003 & \cellcolor[HTML]{9900E6}1049 &
+		\cellcolor[HTML]{4C00E6}1125 & \cellcolor[HTML]{4C00E6}1197 \\
+		\cline{1-1}
+		\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{99E600}214 &
+		\cellcolor[HTML]{99E600}359 & \cellcolor[HTML]{E69900}477 &
+		\cellcolor[HTML]{E69900}582 & \cellcolor[HTML]{E60000}770 &
+		\cellcolor[HTML]{9900E6}856 & \cellcolor[HTML]{9900E6}935 &
+		\cellcolor[HTML]{9900E6}1037 & \cellcolor[HTML]{9900E6}1059 &
+		\cellcolor[HTML]{4C00E6}1107 & \cellcolor[HTML]{4C00E6}1184 &
+		\cellcolor[HTML]{4C00E6}1258 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{99E600}295 &
+		\cellcolor[HTML]{99E600}270 & \cellcolor[HTML]{E69900}417 &
+		\cellcolor[HTML]{E69900}534 & \cellcolor[HTML]{E60000}680 &
+		\cellcolor[HTML]{E60000}822 & \cellcolor[HTML]{9900E6}927 &
+		\cellcolor[HTML]{9900E6}973 & \cellcolor[HTML]{4C00E6}1099 &
+		\cellcolor[HTML]{4C00E6}1113 & \cellcolor[HTML]{4C00E6}1164 &
+		\cellcolor[HTML]{4C00E6}1241 & \cellcolor[HTML]{4C00E6}1315 \\ \hline
+		\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} &
+		\multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} &
+		\multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} &
+		\multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} &
+		\multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} &
+		\multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} &
+		\multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14}
+	\end{tabular}
+\end{table}
+
+%%%%% pro
+
+\begin{table}[h]
+	\caption{djb2 Laufzeit für proteins.200MB in s \emph{farbig}}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}280 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}347 & \cellcolor[HTML]{99E600}452 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}469 & \cellcolor[HTML]{99E600}587 & \cellcolor[HTML]{99E600}708 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}610 & \cellcolor[HTML]{99E600}722 & \cellcolor[HTML]{99E600}894 & \cellcolor[HTML]{99E600}1017 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}717 & \cellcolor[HTML]{99E600}1016 & \cellcolor[HTML]{99E600}1288 & \cellcolor[HTML]{99E600}1286 & \cellcolor[HTML]{99E600}1421 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}828 & \cellcolor[HTML]{99E600}1168 & \cellcolor[HTML]{99E600}1422 & \cellcolor[HTML]{E69900}1586 & \cellcolor[HTML]{E69900}1708 & \cellcolor[HTML]{E69900}1782 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}840 & \cellcolor[HTML]{99E600}1300 & \cellcolor[HTML]{E69900}1625 & \cellcolor[HTML]{E69900}1861 & \cellcolor[HTML]{E69900}2031 & \cellcolor[HTML]{E69900}2172 & \cellcolor[HTML]{E69900}2334 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}947 & \cellcolor[HTML]{99E600}1347 & \cellcolor[HTML]{E69900}1824 & \cellcolor[HTML]{E69900}2159 & \cellcolor[HTML]{E69900}2399 & \cellcolor[HTML]{E69900}2533 & \cellcolor[HTML]{E60000}2652 & \cellcolor[HTML]{E60000}2823 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}1083 & \cellcolor[HTML]{E69900}1593 & \cellcolor[HTML]{E69900}1922 & \cellcolor[HTML]{E69900}2347 & \cellcolor[HTML]{E60000}2664 & \cellcolor[HTML]{E60000}2917 & \cellcolor[HTML]{E60000}3071 & \cellcolor[HTML]{E60000}3263 & \cellcolor[HTML]{E60000}3396 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{E69900}1589 & \cellcolor[HTML]{E69900}2276 & \cellcolor[HTML]{E60000}2771 & \cellcolor[HTML]{E60000}2995 & \cellcolor[HTML]{E60000}3428 & \cellcolor[HTML]{9900E6}3793 & \cellcolor[HTML]{9900E6}3967 & \cellcolor[HTML]{9900E6}4062 & \cellcolor[HTML]{9900E6}4234 & \cellcolor[HTML]{9900E6}4474 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{E60000}2747 & \cellcolor[HTML]{E60000}3387 & \cellcolor[HTML]{9900E6}4110 & \cellcolor[HTML]{9900E6}4468 & \cellcolor[HTML]{9900E6}4742 & \cellcolor[HTML]{4C00E6}5113 & \cellcolor[HTML]{4C00E6}5528 & \cellcolor[HTML]{4C00E6}5780 & \cellcolor[HTML]{4C00E6}5800 & \cellcolor[HTML]{4C00E6}5875 & \cellcolor[HTML]{4C00E6}6224 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{4C00E6}5316 & \cellcolor[HTML]{4C00E6}5971 & \cellcolor[HTML]{4C00E6}6772 & \cellcolor[HTML]{4C00E6}7164 & \cellcolor[HTML]{4C00E6}7364 & \cellcolor[HTML]{4C00E6}7888 & \cellcolor[HTML]{4C00E6}8122 & \cellcolor[HTML]{4C00E6}8273 & \cellcolor[HTML]{4C00E6}8518 & \cellcolor[HTML]{4C00E6}8958 & \cellcolor[HTML]{4C00E6}8997 & \cellcolor[HTML]{4C00E6}9515 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{99E600}643 & \cellcolor[HTML]{E69900}1689 & \cellcolor[HTML]{E60000}2066 & \cellcolor[HTML]{E60000}3183 & \cellcolor[HTML]{9900E6}4141 & \cellcolor[HTML]{9900E6}4198 & \cellcolor[HTML]{9900E6}4856 & \cellcolor[HTML]{9900E6}4772 & \cellcolor[HTML]{4C00E6}5405 & \cellcolor[HTML]{4C00E6}5562 & \cellcolor[HTML]{4C00E6}6014 & \cellcolor[HTML]{4C00E6}5775 & \cellcolor[HTML]{4C00E6}6038 \\ \cline{1-1} \cline{11-14} 
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+\begin{table}[h]
+	\caption{Buzhashing Laufzeit für proteins.200MB in s \emph{farbig}}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}185 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}177 & \cellcolor[HTML]{99E600}266 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}181 & \cellcolor[HTML]{99E600}254 & \cellcolor[HTML]{99E600}344 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}196 & \cellcolor[HTML]{99E600}266 & \cellcolor[HTML]{99E600}339 & \cellcolor[HTML]{99E600}432 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}206 & \cellcolor[HTML]{99E600}290 & \cellcolor[HTML]{99E600}364 & \cellcolor[HTML]{E69900}459 & \cellcolor[HTML]{E69900}557 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}213 & \cellcolor[HTML]{99E600}297 & \cellcolor[HTML]{99E600}373 & \cellcolor[HTML]{E69900}450 & \cellcolor[HTML]{E69900}570 & \cellcolor[HTML]{E69900}630 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}220 & \cellcolor[HTML]{99E600}313 & \cellcolor[HTML]{99E600}400 & \cellcolor[HTML]{E69900}473 & \cellcolor[HTML]{E69900}557 & \cellcolor[HTML]{E69900}679 & \cellcolor[HTML]{E69900}709 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}218 & \cellcolor[HTML]{99E600}313 & \cellcolor[HTML]{99E600}402 & \cellcolor[HTML]{E69900}489 & \cellcolor[HTML]{E69900}572 & \cellcolor[HTML]{E69900}633 & \cellcolor[HTML]{E60000}780 & \cellcolor[HTML]{E60000}879 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}227 & \cellcolor[HTML]{99E600}328 & \cellcolor[HTML]{99E600}425 & \cellcolor[HTML]{E69900}522 & \cellcolor[HTML]{E69900}597 & \cellcolor[HTML]{E69900}676 & \cellcolor[HTML]{E60000}759 & \cellcolor[HTML]{E60000}903 & \cellcolor[HTML]{9900E6}984 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}251 & \cellcolor[HTML]{99E600}360 & \cellcolor[HTML]{E69900}455 & \cellcolor[HTML]{E69900}556 & \cellcolor[HTML]{E69900}650 & \cellcolor[HTML]{E60000}737 & \cellcolor[HTML]{E60000}827 & \cellcolor[HTML]{E60000}894 & \cellcolor[HTML]{9900E6}1089 & \cellcolor[HTML]{9900E6}1114 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{99E600}291 & \cellcolor[HTML]{99E600}392 & \cellcolor[HTML]{E69900}511 & \cellcolor[HTML]{E69900}605 & \cellcolor[HTML]{E69900}701 & \cellcolor[HTML]{E60000}796 & \cellcolor[HTML]{E60000}887 & \cellcolor[HTML]{E60000}961 & \cellcolor[HTML]{9900E6}1041 & \cellcolor[HTML]{9900E6}1204 & \cellcolor[HTML]{4C00E6}1310 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{99E600}376 & \cellcolor[HTML]{99E600}473 & \cellcolor[HTML]{E69900}607 & \cellcolor[HTML]{E69900}683 & \cellcolor[HTML]{E60000}812 & \cellcolor[HTML]{E60000}902 & \cellcolor[HTML]{9900E6}992 & \cellcolor[HTML]{9900E6}1086 & \cellcolor[HTML]{9900E6}1172 & \cellcolor[HTML]{9900E6}1235 & \cellcolor[HTML]{4C00E6}1326 & \cellcolor[HTML]{4C00E6}1522 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{99E600}409 & \cellcolor[HTML]{99E600}431 & \cellcolor[HTML]{E69900}530 & \cellcolor[HTML]{E69900}636 & \cellcolor[HTML]{E60000}744 & \cellcolor[HTML]{E60000}865 & \cellcolor[HTML]{E60000}925 & \cellcolor[HTML]{9900E6}1036 & \cellcolor[HTML]{9900E6}1107 & \cellcolor[HTML]{9900E6}1228 & \cellcolor[HTML]{4C00E6}1309 & \cellcolor[HTML]{4C00E6}1507 & \cellcolor[HTML]{4C00E6}1517 \\ \cline{1-1}
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14}
+		\end{tabular}
+	}
+\end{table}
+
+\begin{table}[h]
+	\caption{Rabin-Karp-Hash Laufzeit in s proteins.200MB in s \emph{farbig}}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}261 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}212 & \cellcolor[HTML]{99E600}301 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}265 & \cellcolor[HTML]{99E600}370 & \cellcolor[HTML]{99E600}401 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}280 & \cellcolor[HTML]{99E600}321 & \cellcolor[HTML]{99E600}493 & \cellcolor[HTML]{99E600}508 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}245 & \cellcolor[HTML]{99E600}346 & \cellcolor[HTML]{99E600}443 & \cellcolor[HTML]{99E600}536 & \cellcolor[HTML]{E69900}627 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}245 & \cellcolor[HTML]{99E600}350 & \cellcolor[HTML]{99E600}449 & \cellcolor[HTML]{E69900}645 & \cellcolor[HTML]{E69900}635 & \cellcolor[HTML]{E69900}736 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}253 & \cellcolor[HTML]{99E600}367 & \cellcolor[HTML]{99E600}483 & \cellcolor[HTML]{E69900}692 & \cellcolor[HTML]{E69900}679 & \cellcolor[HTML]{E69900}770 & \cellcolor[HTML]{E69900}870 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}255 & \cellcolor[HTML]{99E600}449 & \cellcolor[HTML]{99E600}482 & \cellcolor[HTML]{E69900}622 & \cellcolor[HTML]{E69900}700 & \cellcolor[HTML]{E69900}786 & \cellcolor[HTML]{E60000}1048 & \cellcolor[HTML]{E60000}1155 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}321 & \cellcolor[HTML]{99E600}383 & \cellcolor[HTML]{E69900}606 & \cellcolor[HTML]{E69900}619 & \cellcolor[HTML]{E69900}730 & \cellcolor[HTML]{E60000}980 & \cellcolor[HTML]{E60000}933 & \cellcolor[HTML]{E60000}1207 & \cellcolor[HTML]{E60000}1120 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}286 & \cellcolor[HTML]{99E600}494 & \cellcolor[HTML]{99E600}535 & \cellcolor[HTML]{E69900}663 & \cellcolor[HTML]{E60000}921 & \cellcolor[HTML]{E60000}1050 & \cellcolor[HTML]{E60000}1161 & \cellcolor[HTML]{E60000}1085 & \cellcolor[HTML]{9900E6}1457 & \cellcolor[HTML]{9900E6}1279 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{99E600}325 & \cellcolor[HTML]{99E600}461 & \cellcolor[HTML]{E69900}692 & \cellcolor[HTML]{E69900}841 & \cellcolor[HTML]{E69900}819 & \cellcolor[HTML]{E60000}945 & \cellcolor[HTML]{9900E6}1241 & \cellcolor[HTML]{E60000}1156 & \cellcolor[HTML]{9900E6}1269 & \cellcolor[HTML]{4C00E6}1596 & \cellcolor[HTML]{4C00E6}1674 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{99E600}404 & \cellcolor[HTML]{99E600}528 & \cellcolor[HTML]{E69900}665 & \cellcolor[HTML]{E69900}791 & \cellcolor[HTML]{E60000}1066 & \cellcolor[HTML]{E60000}1033 & \cellcolor[HTML]{E60000}1148 & \cellcolor[HTML]{9900E6}1256 & \cellcolor[HTML]{4C00E6}1584 & \cellcolor[HTML]{9900E6}1457 & \cellcolor[HTML]{9900E6}1554 & \cellcolor[HTML]{4C00E6}1980 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{99E600}445 & \cellcolor[HTML]{99E600}434 & \cellcolor[HTML]{E69900}598 & \cellcolor[HTML]{E69900}731 & \cellcolor[HTML]{E69900}856 & \cellcolor[HTML]{E60000}1004 & \cellcolor[HTML]{E60000}1121 & \cellcolor[HTML]{E60000}1236 & \cellcolor[HTML]{9900E6}1360 & \cellcolor[HTML]{9900E6}1557 & \cellcolor[HTML]{9900E6}1567 & \cellcolor[HTML]{4C00E6}1921 & \cellcolor[HTML]{4C00E6}1690 \\ \hline
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+%%%%%eng
+\begin{table}[h]
+	\caption{djb2  Laufzeit für english.200MB in s \emph{farbig}}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}280 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}345 & \cellcolor[HTML]{99E600}449 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}468 & \cellcolor[HTML]{99E600}580 & \cellcolor[HTML]{99E600}702 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}606 & \cellcolor[HTML]{99E600}761 & \cellcolor[HTML]{99E600}892 & \cellcolor[HTML]{99E600}1014 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}743 & \cellcolor[HTML]{99E600}991 & \cellcolor[HTML]{99E600}1111 & \cellcolor[HTML]{99E600}1256 & \cellcolor[HTML]{99E600}1381 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}815 & \cellcolor[HTML]{99E600}1125 & \cellcolor[HTML]{99E600}1387 & \cellcolor[HTML]{E69900}1538 & \cellcolor[HTML]{E69900}1644 & \cellcolor[HTML]{E69900}1728 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}834 & \cellcolor[HTML]{99E600}1279 & \cellcolor[HTML]{E69900}1617 & \cellcolor[HTML]{E69900}1828 & \cellcolor[HTML]{E69900}1980 & \cellcolor[HTML]{E69900}2143 & \cellcolor[HTML]{E69900}2291 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}925 & \cellcolor[HTML]{99E600}1313 & \cellcolor[HTML]{E69900}1772 & \cellcolor[HTML]{E69900}2046 & \cellcolor[HTML]{E69900}2308 & \cellcolor[HTML]{E69900}2479 & \cellcolor[HTML]{E60000}2567 & \cellcolor[HTML]{E60000}2689 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}1068 & \cellcolor[HTML]{E69900}1546 & \cellcolor[HTML]{E69900}1869 & \cellcolor[HTML]{E69900}2298 & \cellcolor[HTML]{E69900}2541 & \cellcolor[HTML]{E60000}2826 & \cellcolor[HTML]{E60000}3010 & \cellcolor[HTML]{E60000}3158 & \cellcolor[HTML]{E60000}3285 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}1530 & \cellcolor[HTML]{E69900}2033 & \cellcolor[HTML]{E69900}2547 & \cellcolor[HTML]{E60000}2749 & \cellcolor[HTML]{E60000}3160 & \cellcolor[HTML]{E60000}3472 & \cellcolor[HTML]{E60000}3736 & \cellcolor[HTML]{9900E6}3939 & \cellcolor[HTML]{9900E6}3983 & \cellcolor[HTML]{9900E6}4134 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{E60000}2948 & \cellcolor[HTML]{E60000}3433 & \cellcolor[HTML]{9900E6}3978 & \cellcolor[HTML]{9900E6}4307 & \cellcolor[HTML]{9900E6}4637 & \cellcolor[HTML]{4C00E6}4935 & \cellcolor[HTML]{4C00E6}5459 & \cellcolor[HTML]{4C00E6}5720 & \cellcolor[HTML]{4C00E6}5774 & \cellcolor[HTML]{4C00E6}5847 & \cellcolor[HTML]{4C00E6}6039 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{E69900}1533 & \cellcolor[HTML]{E69900}2561 & \cellcolor[HTML]{E60000}3155 & \cellcolor[HTML]{E60000}3591 & \cellcolor[HTML]{9900E6}3910 & \cellcolor[HTML]{9900E6}4229 & \cellcolor[HTML]{9900E6}4685 & \cellcolor[HTML]{4C00E6}5032 & \cellcolor[HTML]{4C00E6}5289 & \cellcolor[HTML]{4C00E6}5576 & \cellcolor[HTML]{4C00E6}5654 & \cellcolor[HTML]{4C00E6}5496 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{99E600}765 & \cellcolor[HTML]{E69900}1606 & \cellcolor[HTML]{E60000}2227 & \cellcolor[HTML]{E60000}3216 & \cellcolor[HTML]{9900E6}3844 & \cellcolor[HTML]{9900E6}4001 & \cellcolor[HTML]{9900E6}4349 & \cellcolor[HTML]{9900E6}4589 & \cellcolor[HTML]{4C00E6}5076 & \cellcolor[HTML]{4C00E6}5193 & \cellcolor[HTML]{4C00E6}5460 & \cellcolor[HTML]{4C00E6}5775 & \cellcolor[HTML]{4C00E6}6066 \\ \hline
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+\begin{table}[h]
+	\caption{Buzhashing Laufzeit für english.200MB in s \emph{farbig}}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}186 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}171 & \cellcolor[HTML]{99E600}261 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}179 & \cellcolor[HTML]{99E600}245 & \cellcolor[HTML]{99E600}351 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}186 & \cellcolor[HTML]{99E600}254 & \cellcolor[HTML]{99E600}321 & \cellcolor[HTML]{E69900}433 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}204 & \cellcolor[HTML]{99E600}274 & \cellcolor[HTML]{99E600}343 & \cellcolor[HTML]{E69900}434 & \cellcolor[HTML]{E69900}535 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}210 & \cellcolor[HTML]{99E600}284 & \cellcolor[HTML]{99E600}371 & \cellcolor[HTML]{E69900}435 & \cellcolor[HTML]{E69900}548 & \cellcolor[HTML]{E69900}615 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}308 & \cellcolor[HTML]{99E600}390 & \cellcolor[HTML]{E69900}459 & \cellcolor[HTML]{E69900}536 & \cellcolor[HTML]{E69900}650 & \cellcolor[HTML]{E60000}693 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}318 & \cellcolor[HTML]{99E600}403 & \cellcolor[HTML]{E69900}487 & \cellcolor[HTML]{E69900}555 & \cellcolor[HTML]{E69900}618 & \cellcolor[HTML]{E60000}763 & \cellcolor[HTML]{E60000}835 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}235 & \cellcolor[HTML]{99E600}330 & \cellcolor[HTML]{E69900}424 & \cellcolor[HTML]{E69900}514 & \cellcolor[HTML]{E69900}599 & \cellcolor[HTML]{E60000}670 & \cellcolor[HTML]{E60000}737 & \cellcolor[HTML]{E60000}856 & \cellcolor[HTML]{9900E6}930 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}258 & \cellcolor[HTML]{99E600}361 & \cellcolor[HTML]{E69900}454 & \cellcolor[HTML]{E69900}548 & \cellcolor[HTML]{E69900}629 & \cellcolor[HTML]{E60000}715 & \cellcolor[HTML]{E60000}797 & \cellcolor[HTML]{E60000}865 & \cellcolor[HTML]{9900E6}1030 & \cellcolor[HTML]{9900E6}1064 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{99E600}301 & \cellcolor[HTML]{99E600}402 & \cellcolor[HTML]{E69900}505 & \cellcolor[HTML]{E69900}596 & \cellcolor[HTML]{E60000}699 & \cellcolor[HTML]{E60000}791 & \cellcolor[HTML]{E60000}871 & \cellcolor[HTML]{9900E6}937 & \cellcolor[HTML]{9900E6}1028 & \cellcolor[HTML]{4C00E6}1154 & \cellcolor[HTML]{4C00E6}1308 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{99E600}296 & \cellcolor[HTML]{99E600}416 & \cellcolor[HTML]{E69900}519 & \cellcolor[HTML]{E69900}616 & \cellcolor[HTML]{E60000}721 & \cellcolor[HTML]{E60000}811 & \cellcolor[HTML]{E60000}906 & \cellcolor[HTML]{9900E6}986 & \cellcolor[HTML]{9900E6}1071 & \cellcolor[HTML]{9900E6}1129 & \cellcolor[HTML]{4C00E6}1194 & \cellcolor[HTML]{4C00E6}1394 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{99E600}376 & \cellcolor[HTML]{99E600}359 & \cellcolor[HTML]{E69900}473 & \cellcolor[HTML]{E69900}579 & \cellcolor[HTML]{E60000}681 & \cellcolor[HTML]{E60000}781 & \cellcolor[HTML]{E60000}868 & \cellcolor[HTML]{9900E6}964 & \cellcolor[HTML]{9900E6}1052 & \cellcolor[HTML]{9900E6}1128 & \cellcolor[HTML]{4C00E6}1173 & \cellcolor[HTML]{4C00E6}1377 & \cellcolor[HTML]{4C00E6}1396 \\ \cline{1-1}
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14}
+		\end{tabular}
+	}
+\end{table}
+
+\begin{table}[h]
+	\caption{Rabin-Karp-Hash  Laufzeit für english.200MB in s \emph{farbig}}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}208 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}255 & \cellcolor[HTML]{99E600}297 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}207 & \cellcolor[HTML]{99E600}303 & \cellcolor[HTML]{99E600}397 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}223 & \cellcolor[HTML]{99E600}389 & \cellcolor[HTML]{99E600}404 & \cellcolor[HTML]{99E600}494 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}238 & \cellcolor[HTML]{99E600}332 & \cellcolor[HTML]{99E600}425 & \cellcolor[HTML]{E69900}515 & \cellcolor[HTML]{E69900}605 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}244 & \cellcolor[HTML]{99E600}426 & \cellcolor[HTML]{99E600}441 & \cellcolor[HTML]{E69900}538 & \cellcolor[HTML]{E69900}620 & \cellcolor[HTML]{E69900}716 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}253 & \cellcolor[HTML]{99E600}364 & \cellcolor[HTML]{99E600}463 & \cellcolor[HTML]{E69900}557 & \cellcolor[HTML]{E69900}659 & \cellcolor[HTML]{E69900}748 & \cellcolor[HTML]{E60000}827 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}260 & \cellcolor[HTML]{99E600}373 & \cellcolor[HTML]{E69900}580 & \cellcolor[HTML]{E69900}583 & \cellcolor[HTML]{E69900}680 & \cellcolor[HTML]{E69900}773 & \cellcolor[HTML]{E60000}864 & \cellcolor[HTML]{E60000}948 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}267 & \cellcolor[HTML]{99E600}385 & \cellcolor[HTML]{E69900}497 & \cellcolor[HTML]{E69900}611 & \cellcolor[HTML]{E60000}872 & \cellcolor[HTML]{E60000}815 & \cellcolor[HTML]{E60000}903 & \cellcolor[HTML]{E60000}994 & \cellcolor[HTML]{E60000}1074 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}293 & \cellcolor[HTML]{99E600}410 & \cellcolor[HTML]{E69900}640 & \cellcolor[HTML]{E69900}724 & \cellcolor[HTML]{E69900}754 & \cellcolor[HTML]{E60000}859 & \cellcolor[HTML]{E60000}949 & \cellcolor[HTML]{E60000}1060 & \cellcolor[HTML]{9900E6}1225 & \cellcolor[HTML]{9900E6}1251 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{99E600}334 & \cellcolor[HTML]{99E600}460 & \cellcolor[HTML]{E69900}692 & \cellcolor[HTML]{E69900}694 & \cellcolor[HTML]{E60000}989 & \cellcolor[HTML]{E60000}923 & \cellcolor[HTML]{E60000}1034 & \cellcolor[HTML]{9900E6}1123 & \cellcolor[HTML]{9900E6}1195 & \cellcolor[HTML]{4C00E6}1634 & \cellcolor[HTML]{4C00E6}1663 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{99E600}329 & \cellcolor[HTML]{E69900}561 & \cellcolor[HTML]{E69900}606 & \cellcolor[HTML]{E69900}712 & \cellcolor[HTML]{E60000}832 & \cellcolor[HTML]{9900E6}1139 & \cellcolor[HTML]{9900E6}1061 & \cellcolor[HTML]{9900E6}1414 & \cellcolor[HTML]{9900E6}1268 & \cellcolor[HTML]{4C00E6}1364 & \cellcolor[HTML]{4C00E6}1712 & \cellcolor[HTML]{4C00E6}1696 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{99E600}415 & \cellcolor[HTML]{99E600}506 & \cellcolor[HTML]{E69900}543 & \cellcolor[HTML]{E69900}673 & \cellcolor[HTML]{E60000}805 & \cellcolor[HTML]{E60000}932 & \cellcolor[HTML]{E60000}1047 & \cellcolor[HTML]{9900E6}1151 & \cellcolor[HTML]{9900E6}1306 & \cellcolor[HTML]{9900E6}1401 & \cellcolor[HTML]{4C00E6}1457 & \cellcolor[HTML]{4C00E6}1722 & \cellcolor[HTML]{4C00E6}1587 \\ \hline
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+%%%%%xml
+
+\begin{table}[h]
+	\caption{djb2 Laufzeit für dblp.xml.200MB in s \emph{farbig}}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  & & &  & \cellcolor[HTML]{99E600}279 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  & &  & \cellcolor[HTML]{99E600}332 & \cellcolor[HTML]{99E600}451 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}451 & \cellcolor[HTML]{99E600}588 & \cellcolor[HTML]{99E600}700 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}557 & \cellcolor[HTML]{99E600}753 & \cellcolor[HTML]{99E600}891 & \cellcolor[HTML]{99E600}1024 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}679 & \cellcolor[HTML]{99E600}1008 & \cellcolor[HTML]{99E600}1065 & \cellcolor[HTML]{99E600}1252 & \cellcolor[HTML]{E69900}1343 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}757 & \cellcolor[HTML]{99E600}1060 & \cellcolor[HTML]{99E600}1283 & \cellcolor[HTML]{E69900}1437 & \cellcolor[HTML]{E69900}1622 & \cellcolor[HTML]{E69900}1751 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}803 & \cellcolor[HTML]{99E600}1208 & \cellcolor[HTML]{E69900}1438 & \cellcolor[HTML]{E69900}1733 & \cellcolor[HTML]{E69900}1892 & \cellcolor[HTML]{E69900}1988 & \cellcolor[HTML]{E69900}2110 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}926 & \cellcolor[HTML]{99E600}1261 & \cellcolor[HTML]{E69900}1590 & \cellcolor[HTML]{E69900}1871 & \cellcolor[HTML]{E69900}2145 & \cellcolor[HTML]{E69900}2307 & \cellcolor[HTML]{E60000}2423 & \cellcolor[HTML]{E60000}2542 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}1107 & \cellcolor[HTML]{E69900}1599 & \cellcolor[HTML]{E69900}1898 & \cellcolor[HTML]{E69900}2252 & \cellcolor[HTML]{E60000}2477 & \cellcolor[HTML]{E60000}2733 & \cellcolor[HTML]{E60000}2923 & \cellcolor[HTML]{E60000}3053 & \cellcolor[HTML]{E60000}3185 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}1075 & \cellcolor[HTML]{E69900}2011 & \cellcolor[HTML]{E60000}2727 & \cellcolor[HTML]{E60000}2928 & \cellcolor[HTML]{E60000}3271 & \cellcolor[HTML]{9900E6}3471 & \cellcolor[HTML]{9900E6}3723 & \cellcolor[HTML]{9900E6}4050 & \cellcolor[HTML]{9900E6}4001 & \cellcolor[HTML]{9900E6}4154 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{99E600}933 & \cellcolor[HTML]{E69900}1684 & \cellcolor[HTML]{E60000}2572 & \cellcolor[HTML]{9900E6}3405 & \cellcolor[HTML]{9900E6}3848 & \cellcolor[HTML]{9900E6}4060 & \cellcolor[HTML]{4C00E6}4582 & \cellcolor[HTML]{4C00E6}4757 & \cellcolor[HTML]{4C00E6}4487 & \cellcolor[HTML]{4C00E6}4599 & \cellcolor[HTML]{4C00E6}5021 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{99E600}1040 & \cellcolor[HTML]{E69900}1306 & \cellcolor[HTML]{E60000}2520 & \cellcolor[HTML]{E60000}3145 & \cellcolor[HTML]{E60000}3052 & \cellcolor[HTML]{9900E6}3650 & \cellcolor[HTML]{9900E6}4028 & \cellcolor[HTML]{9900E6}4290 & \cellcolor[HTML]{9900E6}4193 & \cellcolor[HTML]{4C00E6}5028 & \cellcolor[HTML]{4C00E6}4872 & \cellcolor[HTML]{4C00E6}5286 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{99E600}938 & \cellcolor[HTML]{99E600}1200 & \cellcolor[HTML]{E69900}1564 & \cellcolor[HTML]{E60000}2410 & \cellcolor[HTML]{9900E6}3664 & \cellcolor[HTML]{9900E6}3918 & \cellcolor[HTML]{9900E6}4412 & \cellcolor[HTML]{9900E6}4086 & \cellcolor[HTML]{4C00E6}4581 & \cellcolor[HTML]{4C00E6}4577 & \cellcolor[HTML]{4C00E6}5016 & \cellcolor[HTML]{4C00E6}4817 & \cellcolor[HTML]{4C00E6}5464 \\ \cline{1-1}
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14}
+		\end{tabular}
+	}
+\end{table}
+
+\begin{table}[h]
+	\caption{Buzhashing  Laufzeit für dblp.xml.200MB in s \emph{farbig}}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}154 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}145 & \cellcolor[HTML]{99E600}203 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}151 & \cellcolor[HTML]{99E600}191 & \cellcolor[HTML]{99E600}262 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}166 & \cellcolor[HTML]{99E600}208 & \cellcolor[HTML]{99E600}246 & \cellcolor[HTML]{99E600}321 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}179 & \cellcolor[HTML]{99E600}226 & \cellcolor[HTML]{99E600}269 & \cellcolor[HTML]{99E600}322 & \cellcolor[HTML]{E69900}392 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}215 & \cellcolor[HTML]{99E600}271 & \cellcolor[HTML]{99E600}310 & \cellcolor[HTML]{99E600}346 & \cellcolor[HTML]{E69900}444 & \cellcolor[HTML]{E69900}467 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}224 & \cellcolor[HTML]{99E600}316 & \cellcolor[HTML]{E69900}368 & \cellcolor[HTML]{E69900}416 & \cellcolor[HTML]{E69900}453 & \cellcolor[HTML]{E69900}532 & \cellcolor[HTML]{E60000}569 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}226 & \cellcolor[HTML]{99E600}319 & \cellcolor[HTML]{E69900}407 & \cellcolor[HTML]{E69900}461 & \cellcolor[HTML]{E69900}509 & \cellcolor[HTML]{E69900}556 & \cellcolor[HTML]{E60000}632 & \cellcolor[HTML]{E60000}698 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}231 & \cellcolor[HTML]{99E600}333 & \cellcolor[HTML]{E69900}430 & \cellcolor[HTML]{E69900}509 & \cellcolor[HTML]{E60000}574 & \cellcolor[HTML]{E60000}612 & \cellcolor[HTML]{E60000}653 & \cellcolor[HTML]{E60000}759 & \cellcolor[HTML]{9900E6}792 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}218 & \cellcolor[HTML]{99E600}336 & \cellcolor[HTML]{E69900}436 & \cellcolor[HTML]{E69900}536 & \cellcolor[HTML]{E60000}628 & \cellcolor[HTML]{E60000}677 & \cellcolor[HTML]{E60000}727 & \cellcolor[HTML]{E60000}767 & \cellcolor[HTML]{9900E6}896 & \cellcolor[HTML]{4C00E6}910 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{99E600}227 & \cellcolor[HTML]{99E600}323 & \cellcolor[HTML]{E69900}446 & \cellcolor[HTML]{E69900}553 & \cellcolor[HTML]{E60000}640 & \cellcolor[HTML]{E60000}743 & \cellcolor[HTML]{9900E6}789 & \cellcolor[HTML]{9900E6}838 & \cellcolor[HTML]{9900E6}877 & \cellcolor[HTML]{4C00E6}1000 & \cellcolor[HTML]{4C00E6}1054 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{99E600}251 & \cellcolor[HTML]{99E600}331 & \cellcolor[HTML]{E69900}424 & \cellcolor[HTML]{E69900}534 & \cellcolor[HTML]{E60000}665 & \cellcolor[HTML]{E60000}718 & \cellcolor[HTML]{9900E6}815 & \cellcolor[HTML]{9900E6}873 & \cellcolor[HTML]{9900E6}924 & \cellcolor[HTML]{9900E6}971 & \cellcolor[HTML]{4C00E6}994 & \cellcolor[HTML]{4C00E6}1139 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{E69900}356 & \cellcolor[HTML]{99E600}343 & \cellcolor[HTML]{E69900}362 & \cellcolor[HTML]{E69900}448 & \cellcolor[HTML]{E60000}618 & \cellcolor[HTML]{E60000}698 & \cellcolor[HTML]{9900E6}807 & \cellcolor[HTML]{9900E6}878 & \cellcolor[HTML]{9900E6}942 & \cellcolor[HTML]{4C00E6}966 & \cellcolor[HTML]{4C00E6}1064 & \cellcolor[HTML]{4C00E6}1160 & \cellcolor[HTML]{4C00E6}1184 \\ \cline{1-1}
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14}
+		\end{tabular}
+	}
+\end{table}
+
+\begin{table}[h]
+	\caption{Rabin-Karp-Hash  Laufzeit für dblp.xml.200MB in s \emph{farbig}}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}224 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}174 & \cellcolor[HTML]{99E600}313 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}180 & \cellcolor[HTML]{99E600}230 & \cellcolor[HTML]{99E600}401 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}193 & \cellcolor[HTML]{99E600}332 & \cellcolor[HTML]{99E600}295 & \cellcolor[HTML]{99E600}349 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}206 & \cellcolor[HTML]{99E600}272 & \cellcolor[HTML]{99E600}320 & \cellcolor[HTML]{99E600}369 & \cellcolor[HTML]{99E600}422 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}253 & \cellcolor[HTML]{99E600}400 & \cellcolor[HTML]{99E600}385 & \cellcolor[HTML]{99E600}429 & \cellcolor[HTML]{E69900}645 & \cellcolor[HTML]{E69900}538 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}263 & \cellcolor[HTML]{99E600}374 & \cellcolor[HTML]{99E600}432 & \cellcolor[HTML]{E69900}500 & \cellcolor[HTML]{E69900}543 & \cellcolor[HTML]{E69900}605 & \cellcolor[HTML]{E60000}860 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}318 & \cellcolor[HTML]{99E600}373 & \cellcolor[HTML]{E69900}590 & \cellcolor[HTML]{E69900}549 & \cellcolor[HTML]{E60000}770 & \cellcolor[HTML]{E60000}850 & \cellcolor[HTML]{E60000}720 & \cellcolor[HTML]{E60000}778 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}266 & \cellcolor[HTML]{99E600}392 & \cellcolor[HTML]{E69900}507 & \cellcolor[HTML]{E69900}738 & \cellcolor[HTML]{E60000}828 & \cellcolor[HTML]{E60000}738 & \cellcolor[HTML]{E60000}804 & \cellcolor[HTML]{E60000}852 & \cellcolor[HTML]{E60000}903 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}254 & \cellcolor[HTML]{99E600}390 & \cellcolor[HTML]{E69900}518 & \cellcolor[HTML]{E60000}781 & \cellcolor[HTML]{E60000}752 & \cellcolor[HTML]{E60000}815 & \cellcolor[HTML]{E60000}871 & \cellcolor[HTML]{E60000}926 & \cellcolor[HTML]{9900E6}1218 & \cellcolor[HTML]{9900E6}1325 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{99E600}346 & \cellcolor[HTML]{E69900}487 & \cellcolor[HTML]{E69900}526 & \cellcolor[HTML]{E69900}654 & \cellcolor[HTML]{E60000}939 & \cellcolor[HTML]{9900E6}1079 & \cellcolor[HTML]{E60000}949 & \cellcolor[HTML]{9900E6}1011 & \cellcolor[HTML]{9900E6}1071 & \cellcolor[HTML]{9900E6}1330 & \cellcolor[HTML]{9900E6}1205 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{99E600}285 & \cellcolor[HTML]{99E600}378 & \cellcolor[HTML]{E69900}637 & \cellcolor[HTML]{E69900}628 & \cellcolor[HTML]{E60000}784 & \cellcolor[HTML]{E60000}854 & \cellcolor[HTML]{9900E6}986 & \cellcolor[HTML]{9900E6}1289 & \cellcolor[HTML]{9900E6}1104 & \cellcolor[HTML]{4C00E6}1467 & \cellcolor[HTML]{9900E6}1211 & \cellcolor[HTML]{4C00E6}1508 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{99E600}392 & \cellcolor[HTML]{99E600}384 & \cellcolor[HTML]{99E600}433 & \cellcolor[HTML]{E69900}538 & \cellcolor[HTML]{E60000}731 & \cellcolor[HTML]{E60000}870 & \cellcolor[HTML]{9900E6}973 & \cellcolor[HTML]{9900E6}1073 & \cellcolor[HTML]{9900E6}1163 & \cellcolor[HTML]{9900E6}1215 & \cellcolor[HTML]{4C00E6}1327 & \cellcolor[HTML]{4C00E6}1483 & \cellcolor[HTML]{4C00E6}1325 \\ \cline{1-1}
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14}
+		\end{tabular}
+	}
+\end{table}
+
+%%%%%einstein
+
+\begin{table}[h]
+	\caption{djb Zeit für einstein.de.txt in s}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}76 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}90 & \cellcolor[HTML]{99E600}127 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}99 & \cellcolor[HTML]{99E600}134 & \cellcolor[HTML]{99E600}171 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}116 & \cellcolor[HTML]{99E600}151 & \cellcolor[HTML]{99E600}175 & \cellcolor[HTML]{E69900}220 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}106 & \cellcolor[HTML]{99E600}176 & \cellcolor[HTML]{E69900}191 & \cellcolor[HTML]{E69900}220 & \cellcolor[HTML]{E69900}267 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}111 & \cellcolor[HTML]{99E600}152 & \cellcolor[HTML]{E69900}225 & \cellcolor[HTML]{E69900}249 & \cellcolor[HTML]{E69900}279 & \cellcolor[HTML]{E60000}306 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}109 & \cellcolor[HTML]{99E600}157 & \cellcolor[HTML]{E69900}205 & \cellcolor[HTML]{E69900}285 & \cellcolor[HTML]{E69900}285 & \cellcolor[HTML]{E60000}321 & \cellcolor[HTML]{E60000}356 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}99 & \cellcolor[HTML]{99E600}158 & \cellcolor[HTML]{E69900}200 & \cellcolor[HTML]{E69900}246 & \cellcolor[HTML]{E60000}337 & \cellcolor[HTML]{E60000}326 & \cellcolor[HTML]{E60000}359 & \cellcolor[HTML]{9900E6}403 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}85 & \cellcolor[HTML]{99E600}146 & \cellcolor[HTML]{E69900}206 & \cellcolor[HTML]{E69900}258 & \cellcolor[HTML]{E69900}286 & \cellcolor[HTML]{E60000}398 & \cellcolor[HTML]{E60000}366 & \cellcolor[HTML]{9900E6}403 & \cellcolor[HTML]{9900E6}451 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}96 & \cellcolor[HTML]{99E600}134 & \cellcolor[HTML]{E69900}201 & \cellcolor[HTML]{E69900}269 & \cellcolor[HTML]{E60000}300 & \cellcolor[HTML]{E60000}347 & \cellcolor[HTML]{9900E6}457 & \cellcolor[HTML]{9900E6}409 & \cellcolor[HTML]{9900E6}450 & \cellcolor[HTML]{9900E6}492 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{99E600}96 & \cellcolor[HTML]{99E600}134 & \cellcolor[HTML]{99E600}173 & \cellcolor[HTML]{E69900}264 & \cellcolor[HTML]{E60000}320 & \cellcolor[HTML]{E60000}347 & \cellcolor[HTML]{9900E6}400 & \cellcolor[HTML]{4C00E6}511 & \cellcolor[HTML]{9900E6}464 & \cellcolor[HTML]{9900E6}500 & \cellcolor[HTML]{4C00E6}532 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{99E600}116 & \cellcolor[HTML]{99E600}132 & \cellcolor[HTML]{99E600}183 & \cellcolor[HTML]{E69900}212 & \cellcolor[HTML]{E69900}258 & \cellcolor[HTML]{E60000}377 & \cellcolor[HTML]{9900E6}400 & \cellcolor[HTML]{9900E6}437 & \cellcolor[HTML]{4C00E6}568 & \cellcolor[HTML]{4C00E6}541 & \cellcolor[HTML]{4C00E6}542 & \cellcolor[HTML]{4C00E6}577 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{99E600}163 & \cellcolor[HTML]{99E600}150 & \cellcolor[HTML]{E69900}211 & \cellcolor[HTML]{E69900}207 & \cellcolor[HTML]{E69900}250 & \cellcolor[HTML]{E60000}322 & \cellcolor[HTML]{E60000}359 & \cellcolor[HTML]{9900E6}401 & \cellcolor[HTML]{9900E6}483 & \cellcolor[HTML]{4C00E6}514 & \cellcolor[HTML]{4C00E6}552 & \cellcolor[HTML]{4C00E6}573 & \cellcolor[HTML]{4C00E6}616 \\ \hline
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+\begin{table}[h]
+	\caption{Buzhashing Laufzeit in s für einstein.de.txt \emph{farbig}}
+	\label{tab:my-table}
+	\begin{tabular}{lrrrrrrrrrrrrr}
+		\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+		\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}58 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}59 & \cellcolor[HTML]{99E600}86 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}61 & \cellcolor[HTML]{99E600}88 & \cellcolor[HTML]{99E600}112 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}59 & \cellcolor[HTML]{99E600}88 & \cellcolor[HTML]{99E600}117 & \cellcolor[HTML]{E69900}141 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}58 & \cellcolor[HTML]{99E600}88 & \cellcolor[HTML]{99E600}121 & \cellcolor[HTML]{E69900}148 & \cellcolor[HTML]{E69900}169 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}92 & \cellcolor[HTML]{99E600}89 & \cellcolor[HTML]{99E600}114 & \cellcolor[HTML]{E69900}146 & \cellcolor[HTML]{E69900}176 & \cellcolor[HTML]{E60000}192 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}89 & \cellcolor[HTML]{E69900}139 & \cellcolor[HTML]{99E600}119 & \cellcolor[HTML]{E69900}148 & \cellcolor[HTML]{E69900}176 & \cellcolor[HTML]{E60000}206 & \cellcolor[HTML]{E60000}221 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}85 & \cellcolor[HTML]{E69900}135 & \cellcolor[HTML]{E69900}191 & \cellcolor[HTML]{E69900}146 & \cellcolor[HTML]{E69900}178 & \cellcolor[HTML]{E60000}210 & \cellcolor[HTML]{E60000}237 & \cellcolor[HTML]{9900E6}281 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}78 & \cellcolor[HTML]{99E600}124 & \cellcolor[HTML]{E69900}158 & \cellcolor[HTML]{E60000}229 & \cellcolor[HTML]{E69900}181 & \cellcolor[HTML]{E60000}209 & \cellcolor[HTML]{E60000}237 & \cellcolor[HTML]{9900E6}267 & \cellcolor[HTML]{9900E6}288 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}83 & \cellcolor[HTML]{99E600}115 & \cellcolor[HTML]{E69900}163 & \cellcolor[HTML]{E60000}224 & \cellcolor[HTML]{9900E6}259 & \cellcolor[HTML]{E60000}202 & \cellcolor[HTML]{E60000}234 & \cellcolor[HTML]{9900E6}262 & \cellcolor[HTML]{9900E6}294 & \cellcolor[HTML]{9900E6}309 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{99E600}76 & \cellcolor[HTML]{E69900}134 & \cellcolor[HTML]{E69900}149 & \cellcolor[HTML]{E60000}200 & \cellcolor[HTML]{E60000}244 & \cellcolor[HTML]{E60000}224 & \cellcolor[HTML]{E60000}225 & \cellcolor[HTML]{9900E6}266 & \cellcolor[HTML]{9900E6}290 & \cellcolor[HTML]{9900E6}324 & \cellcolor[HTML]{9900E6}330 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{99E600}110 & \cellcolor[HTML]{99E600}109 & \cellcolor[HTML]{E69900}176 & \cellcolor[HTML]{E60000}203 & \cellcolor[HTML]{E60000}241 & \cellcolor[HTML]{9900E6}291 & \cellcolor[HTML]{9900E6}289 & \cellcolor[HTML]{9900E6}255 & \cellcolor[HTML]{9900E6}289 & \cellcolor[HTML]{9900E6}321 & \cellcolor[HTML]{4C00E6}351 & \cellcolor[HTML]{4C00E6}356 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{E69900}161 & \cellcolor[HTML]{E69900}137 & \cellcolor[HTML]{E60000}195 & \cellcolor[HTML]{E60000}220 & \cellcolor[HTML]{E60000}238 & \cellcolor[HTML]{9900E6}285 & \cellcolor[HTML]{9900E6}342 & \cellcolor[HTML]{9900E6}326 & \cellcolor[HTML]{9900E6}286 & \cellcolor[HTML]{9900E6}323 & \cellcolor[HTML]{4C00E6}347 & \cellcolor[HTML]{4C00E6}361 & \cellcolor[HTML]{4C00E6}390 \\ \hline
+		\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+	\end{tabular}
+\end{table}
+
+\begin{table}[h]
+	\caption{Rabin-Karp-Hash Laufzeit in s für einstein  \emph{farbig}}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}72 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}73 & \cellcolor[HTML]{99E600}109 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}77 & \cellcolor[HTML]{99E600}112 & \cellcolor[HTML]{99E600}142 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}74 & \cellcolor[HTML]{99E600}110 & \cellcolor[HTML]{99E600}149 & \cellcolor[HTML]{E69900}180 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}72 & \cellcolor[HTML]{99E600}111 & \cellcolor[HTML]{99E600}151 & \cellcolor[HTML]{E69900}188 & \cellcolor[HTML]{E69900}217 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}91 & \cellcolor[HTML]{99E600}112 & \cellcolor[HTML]{99E600}145 & \cellcolor[HTML]{E69900}185 & \cellcolor[HTML]{E69900}223 & \cellcolor[HTML]{E60000}246 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{E69900}156 & \cellcolor[HTML]{99E600}152 & \cellcolor[HTML]{E69900}187 & \cellcolor[HTML]{E69900}225 & \cellcolor[HTML]{E60000}263 & \cellcolor[HTML]{E60000}283 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}75 & \cellcolor[HTML]{99E600}139 & \cellcolor[HTML]{E69900}187 & \cellcolor[HTML]{E69900}186 & \cellcolor[HTML]{E69900}226 & \cellcolor[HTML]{E60000}267 & \cellcolor[HTML]{E60000}302 & \cellcolor[HTML]{9900E6}347 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{99E600}110 & \cellcolor[HTML]{E69900}199 & \cellcolor[HTML]{E69900}233 & \cellcolor[HTML]{E69900}228 & \cellcolor[HTML]{E60000}265 & \cellcolor[HTML]{E60000}300 & \cellcolor[HTML]{9900E6}341 & \cellcolor[HTML]{9900E6}366 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}96 & \cellcolor[HTML]{99E600}138 & \cellcolor[HTML]{99E600}144 & \cellcolor[HTML]{E60000}259 & \cellcolor[HTML]{E60000}289 & \cellcolor[HTML]{E60000}260 & \cellcolor[HTML]{E60000}299 & \cellcolor[HTML]{9900E6}334 & \cellcolor[HTML]{9900E6}376 & \cellcolor[HTML]{9900E6}394 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{99E600}90 & \cellcolor[HTML]{99E600}145 & \cellcolor[HTML]{99E600}144 & \cellcolor[HTML]{E69900}177 & \cellcolor[HTML]{E60000}291 & \cellcolor[HTML]{E60000}275 & \cellcolor[HTML]{E60000}290 & \cellcolor[HTML]{9900E6}338 & \cellcolor[HTML]{9900E6}375 & \cellcolor[HTML]{4C00E6}412 & \cellcolor[HTML]{4C00E6}422 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{99E600}123 & \cellcolor[HTML]{99E600}128 & \cellcolor[HTML]{E69900}194 & \cellcolor[HTML]{E69900}178 & \cellcolor[HTML]{E69900}212 & \cellcolor[HTML]{E60000}304 & \cellcolor[HTML]{9900E6}345 & \cellcolor[HTML]{E60000}323 & \cellcolor[HTML]{9900E6}369 & \cellcolor[HTML]{9900E6}409 & \cellcolor[HTML]{4C00E6}447 & \cellcolor[HTML]{4C00E6}456 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{E69900}174 & \cellcolor[HTML]{E69900}157 & \cellcolor[HTML]{E69900}214 & \cellcolor[HTML]{E69900}246 & \cellcolor[HTML]{E69900}210 & \cellcolor[HTML]{9900E6}327 & \cellcolor[HTML]{9900E6}383 & \cellcolor[HTML]{9900E6}329 & \cellcolor[HTML]{9900E6}363 & \cellcolor[HTML]{9900E6}405 & \cellcolor[HTML]{4C00E6}445 & \cellcolor[HTML]{4C00E6}466 & \cellcolor[HTML]{4C00E6}496 \\ \hline
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+%%% rand
+
+\begin{table}[h]
+	\caption{Buzhashing Laufzeit in s für random \emph{farbig}}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+	\begin{tabular}{lrrrrrrrrrrrrr}
+		\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+		\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}58 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}68 & \cellcolor[HTML]{99E600}72 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}70 & \cellcolor[HTML]{99E600}85 & \cellcolor[HTML]{99E600}103 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}81 & \cellcolor[HTML]{99E600}93 & \cellcolor[HTML]{99E600}105 & \cellcolor[HTML]{99E600}122 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}75 & \cellcolor[HTML]{99E600}110 & \cellcolor[HTML]{99E600}113 & \cellcolor[HTML]{99E600}130 & \cellcolor[HTML]{99E600}154 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}86 & \cellcolor[HTML]{99E600}103 & \cellcolor[HTML]{99E600}144 & \cellcolor[HTML]{99E600}156 & \cellcolor[HTML]{99E600}162 & \cellcolor[HTML]{99E600}177 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}96 & \cellcolor[HTML]{99E600}116 & \cellcolor[HTML]{99E600}138 & \cellcolor[HTML]{99E600}184 & \cellcolor[HTML]{99E600}176 & \cellcolor[HTML]{E69900}192 & \cellcolor[HTML]{E69900}212 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}97 & \cellcolor[HTML]{99E600}126 & \cellcolor[HTML]{99E600}147 & \cellcolor[HTML]{E69900}165 & \cellcolor[HTML]{E69900}215 & \cellcolor[HTML]{E69900}201 & \cellcolor[HTML]{E69900}221 & \cellcolor[HTML]{E69900}246 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}99 & \cellcolor[HTML]{99E600}137 & \cellcolor[HTML]{99E600}169 & \cellcolor[HTML]{E69900}190 & \cellcolor[HTML]{E69900}210 & \cellcolor[HTML]{E69900}254 & \cellcolor[HTML]{E69900}237 & \cellcolor[HTML]{E69900}257 & \cellcolor[HTML]{E69900}283 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}114 & \cellcolor[HTML]{99E600}142 & \cellcolor[HTML]{99E600}182 & \cellcolor[HTML]{E69900}213 & \cellcolor[HTML]{E69900}226 & \cellcolor[HTML]{E69900}250 & \cellcolor[HTML]{E69900}308 & \cellcolor[HTML]{E69900}285 & \cellcolor[HTML]{E69900}299 & \cellcolor[HTML]{E60000}324 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{99E600}123 & \cellcolor[HTML]{99E600}163 & \cellcolor[HTML]{E69900}192 & \cellcolor[HTML]{E69900}241 & \cellcolor[HTML]{E69900}269 & \cellcolor[HTML]{E69900}286 & \cellcolor[HTML]{E69900}306 & \cellcolor[HTML]{E60000}365 & \cellcolor[HTML]{E60000}337 & \cellcolor[HTML]{E60000}353 & \cellcolor[HTML]{E60000}377 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{4} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{\cellcolor[HTML]{99E600}159} & \multicolumn{1}{l}{\cellcolor[HTML]{E69900}195} & \multicolumn{1}{l}{\cellcolor[HTML]{E69900}254} & \multicolumn{1}{l}{\cellcolor[HTML]{E69900}269} & \multicolumn{1}{l}{\cellcolor[HTML]{E69900}303} & \multicolumn{1}{l}{\cellcolor[HTML]{E60000}360} & \multicolumn{1}{l}{\cellcolor[HTML]{E60000}373} & \multicolumn{1}{l}{\cellcolor[HTML]{E60000}388} & \multicolumn{1}{l}{\cellcolor[HTML]{9900E6}456} & \multicolumn{1}{l}{\cellcolor[HTML]{E60000}441} & \multicolumn{1}{l}{\cellcolor[HTML]{E60000}434} & \multicolumn{1}{l}{\cellcolor[HTML]{E60000}406} \\ \cline{1-1}
+		\multicolumn{1}{|l|}{2} & \multicolumn{1}{l}{\cellcolor[HTML]{E60000}395} & \multicolumn{1}{l}{\cellcolor[HTML]{E60000}395} & \multicolumn{1}{l}{\cellcolor[HTML]{9900E6}486} & \multicolumn{1}{l}{\cellcolor[HTML]{9900E6}506} & \multicolumn{1}{l}{\cellcolor[HTML]{9900E6}508} & \multicolumn{1}{l}{\cellcolor[HTML]{9900E6}554} & \multicolumn{1}{l}{\cellcolor[HTML]{4C00E6}602} & \multicolumn{1}{l}{\cellcolor[HTML]{4C00E6}594} & \multicolumn{1}{l}{\cellcolor[HTML]{4C00E6}654} & \multicolumn{1}{l}{\cellcolor[HTML]{4C00E6}661} & \multicolumn{1}{l}{\cellcolor[HTML]{4C00E6}681} & \multicolumn{1}{l}{\cellcolor[HTML]{4C00E6}692} & \multicolumn{1}{l}{\cellcolor[HTML]{4C00E6}707} \\ \hline
+		\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+	\end{tabular}
+}
+\end{table}
+
+\begin{table}[h]
+	\caption{Rabin-Karp-Hash Laufzeit für random.100MB in s}
+	\label{tab:my-table}
+	\begin{tabular}{lrrrrrrrrrrrrr}
+		\multicolumn{1}{r}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+		\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}79 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}80 & \cellcolor[HTML]{99E600}105 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}82 & \cellcolor[HTML]{99E600}103 & \cellcolor[HTML]{99E600}129 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{99E600}113 & \cellcolor[HTML]{99E600}128 & \cellcolor[HTML]{99E600}150 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}87 & \cellcolor[HTML]{99E600}130 & \cellcolor[HTML]{99E600}140 & \cellcolor[HTML]{99E600}160 & \cellcolor[HTML]{99E600}188 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}98 & \cellcolor[HTML]{99E600}124 & \cellcolor[HTML]{99E600}173 & \cellcolor[HTML]{99E600}185 & \cellcolor[HTML]{99E600}200 & \cellcolor[HTML]{E69900}221 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}110 & \cellcolor[HTML]{99E600}134 & \cellcolor[HTML]{99E600}162 & \cellcolor[HTML]{E69900}218 & \cellcolor[HTML]{E69900}210 & \cellcolor[HTML]{E69900}240 & \cellcolor[HTML]{E69900}257 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}109 & \cellcolor[HTML]{99E600}145 & \cellcolor[HTML]{99E600}174 & \cellcolor[HTML]{99E600}201 & \cellcolor[HTML]{E69900}255 & \cellcolor[HTML]{E69900}245 & \cellcolor[HTML]{E69900}268 & \cellcolor[HTML]{E69900}297 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}110 & \cellcolor[HTML]{99E600}156 & \cellcolor[HTML]{99E600}191 & \cellcolor[HTML]{E69900}226 & \cellcolor[HTML]{E69900}238 & \cellcolor[HTML]{E69900}300 & \cellcolor[HTML]{E69900}285 & \cellcolor[HTML]{E69900}309 & \cellcolor[HTML]{E69900}340 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}129 & \cellcolor[HTML]{99E600}160 & \cellcolor[HTML]{99E600}209 & \cellcolor[HTML]{E69900}246 & \cellcolor[HTML]{E69900}264 & \cellcolor[HTML]{E69900}294 & \cellcolor[HTML]{E60000}354 & \cellcolor[HTML]{E69900}330 & \cellcolor[HTML]{E60000}356 & \cellcolor[HTML]{E60000}382 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{99E600}133 & \cellcolor[HTML]{99E600}181 & \cellcolor[HTML]{99E600}215 & \cellcolor[HTML]{E69900}271 & \cellcolor[HTML]{E69900}313 & \cellcolor[HTML]{E69900}327 & \cellcolor[HTML]{E60000}354 & \cellcolor[HTML]{E60000}426 & \cellcolor[HTML]{E60000}395 & \cellcolor[HTML]{E60000}417 & \cellcolor[HTML]{E60000}446 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{99E600}169 & \cellcolor[HTML]{99E600}212 & \cellcolor[HTML]{E69900}274 & \cellcolor[HTML]{E69900}296 & \cellcolor[HTML]{E69900}339 & \cellcolor[HTML]{E60000}401 & \cellcolor[HTML]{E60000}411 & \cellcolor[HTML]{E60000}441 & \cellcolor[HTML]{9900E6}520 & \cellcolor[HTML]{9900E6}584 & \cellcolor[HTML]{9900E6}505 & \cellcolor[HTML]{9900E6}533 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{E60000}392 & \cellcolor[HTML]{E60000}398 & \cellcolor[HTML]{9900E6}503 & \cellcolor[HTML]{9900E6}527 & \cellcolor[HTML]{9900E6}529 & \cellcolor[HTML]{9900E6}586 & \cellcolor[HTML]{9900E6}638 & \cellcolor[HTML]{4C00E6}646 & \cellcolor[HTML]{4C00E6}699 & \cellcolor[HTML]{4C00E6}722 & \cellcolor[HTML]{4C00E6}758 & \cellcolor[HTML]{4C00E6}742 & \cellcolor[HTML]{4C00E6}770 \\ \hline
+		\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+	\end{tabular}
+\end{table}

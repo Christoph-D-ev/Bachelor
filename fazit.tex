@@ -1,0 +1,58 @@
+\chapter{Fazit}	
+Innerhalb dieser Arbeit wurden die ersten beiden Phasen des in  {\it Approximation LZ77 via Small-Space Multiple-Pattern Matching}  beschriebenen Algorithmus zur Approximierung der \textit{LZ77-Faktorisierung} umgesetzt \cite{LZ77Approx}.\\
+Die Anwendung bietet eine bessere Laufzeit und geringeren Speicherbedarf gegenüber \emph{lzss\_lcp}. Allerdings resultiert daraus eine schlechtere Kompression.\\	
+Die erstellte Implementation ist in das \emph{TU Dortmund Compression Framework} integriert. Trotz der  fehlenden dritten Phase zeigt sich eine bessere Bilanz für den Speicherbedarf, die vermutlich auch mit einer dritten Phase bestehend bleibt.\\	
+Im Allgemeinen konnte gezeigt werden, dass die Approximation der LZ-Faktorisierung auch in der praktischen Umsetzung akzeptable Resultate liefert.\\
+Die Implementation ist eng angelegt an die theoretische Beschreibung.
+Das Programm weicht darin ab, dass wir eine Schranke für die maximale Faktorlänge haben.
+Es hat sich experimentell gezeigt, dass dies speichertechnisch besser ist und auch die Kompression nicht stark beeinflussen sollte, da wir Faktoren mergen. Trotzdem stellt dies eine deutliche Abweichung der Implementation dar.\\
+Als sinnvolle Grenzen stellten sich 16 Byte als minimale Faktorlänge und eine maximale Länge von 4096 Byte heraus. Dabei ist die maximale Länge eine eher schwächere Aussage, da die Werte um 4096  Byte ähnliche Ergebnisse erzielen. Man könnte zwar größere Werte wählen und so für manche Eingaben bessere Kompression und besseren Speicherbedarf erzielen, aber für die hier getesteten Eingaben traf dies selten zu. Oft führten größere Werte nur zur längerer Laufzeit.\\
+Es hat sich gezeigt, dass 64Bit Hashwerte zu Hashmaps mit weniger Speicherverbrauch führen können, als die Verwendung von 32Bit Hashwerte. Und das klassische Rabin-Karp-Fingerprints langsamer sind als andere Hashmethoden ohne diesen gegenüber keine ersichtlichen Vorteile zubringen.
+
+	
+\chapter{Ausblick}
+
+In dieser Arbeit wurden nur die ersten beiden Phasen des Algorithmus umgesetzt.
+Die Implementation einer dritten Phase würde die Kompressionsrate natürlich verbessern, wenn auch vermutlich verlangsamen.
+Es existieren jedoch auch einige  Möglichkeiten zu weiteren Verbesserung des vorhandenen Programms.
+\paragraph{Bessere Quellpositionen}
+Die Implementation erzeugt als Quellposition oft das erste Vorkommen des
+Substrings. Um eine bessere Kompression zu erreichen, könnte man stattdessen
+immer das letzte Vorkommen vor dem String selber als Quellposition
+benutzen. Dies würde vermutlich aber das Programm verlangsamen.
+\paragraph{Redundanz zwischen Objekten}
+Ein Chain Objekt hat nur aus einem Grund eine Position, um während der
+Suche überprüfen zu können, ob der rolling Hash vor dem Substring der
+Chain liegt. Da wir in der Liste der Chains sowieso die
+zusammengehörigen auf- und absteigenden Chains hintereinander speichern müssen,
+lässt sich die Position des einen immer aus der Position des anderen
+errechnen. Daher benötigt jedes zweite Chain Objekt keine Position mit
+zwei Byte, so könnten wir ein Byte pro Chain Objekt sparen.
+\paragraph{Hashfunktionen}
+Es existiert eine fast unbegrenzte Menge an Hashfunktionen. Im Laufe
+dieser Arbeit habe ich eine kleine Auswahl im Zusammenhang mit der
+Implementation getestet. Es ist sehr wahrscheinlich das bessere
+Hashfunktionen existieren. Diese könnten das Programm beschleunigen.
+\paragraph{Relaxing der Suchparameter}
+In Phase 2 des Algorithmus versuchen wir  immer wieder zwei Faktoren zu
+mergen. Dazu suchen wir nach einem String der doppelt solang ist wie der
+längere Faktor.
+Wir vermeiden damit, dass drei aufeinanderfolgende Faktoren selber einen
+Faktor bilden können. Während wir es erlauben, dass zwei aufeinander folgende
+immer noch einen Faktor bilden können. Daher reicht es eigentlich aus wenn
+der Suchstring nur ein nicht leeres Präfix des dritten Faktors enthält.
+Der Suchstring muss also nur eine Länge haben die im Intervall
+$[|f_1|+|f_2|+1\cdots|f_1|+|f_2|+|f_3|]$ liegt. Solche Intervalle können sich für aufeinander folgende Runden überschneiden. Wenn wir dann die Länge des Suchstrings so wählen, dass sie in beiden Intervallen liegt, können wir beide Runden gleichzeitig bearbeiten. Dies würde die Laufzeit von Phase 2 verkürzen.
+\paragraph{longest common extension}
+Während der Suche müssen wir oft überprüfen ob zwei Strings gleich sind. Mit Fingerprints schließen wir einen Großteil aus, aber wir können nicht garantieren, dass die Strings gleich sind. Das Programm überprüft dies mit der C++ internen \emph{compare} Methode. Eine bessere Lösung für das Vergleichen von zwei Strings könnte die Implementation beschleunigen.\\
+Die Größe der Hashmap ist für die meisten Eingaben der entscheidende Faktor
+für den Speicherbedarf des Programms.
+\paragraph{Hashmaps}
+Eine speichersparende Implementation oder auch nur eine andere
+Allokationsstrategie würde den Speicherbedarf senken. Vielleicht könnten
+diese auch 32Bit Hash\-werte wieder interessant machen.\\
+
+
+
+
+

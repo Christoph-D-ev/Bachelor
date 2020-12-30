@@ -1,0 +1,347 @@
+\section{Speicherbedarf}
+
+Speichertechnisch zeigt das Programm gute Ergebnisse, nur selten überschreiten wir die vierfache Eingabegröße.
+Im allgemeinen folgt der Speicherbedarf dem Muster je kleiner die minimaler Faktorlänge desto mehr Speicher benötigen wir.\\
+Besonders gute Ergebnisse erzielen wir für den sehr komprimierbaren einstein.de.txt.\\
+Djb2 benötigt, bedingt durch die kleineren Hashwerte, manchmal weniger Speicher. Die Ersparnis zeigt sich aber erst deutlicher je mehr die minimale Faktorlänge sinkt und wir damit mehr Faktoren haben. Dadurch steigt natürlich auch die Anzahl der  Einträge in der Hashmap \ref{32dna}\ref{32eng}\ref{32prot}\ref{64dna}.\\
+Besonders auffällig ist jedoch der Speicherbedarf für proteins.200MB bei Faktoren kleiner 32 für 64Bit Hashwerte \ref{64pro} und wenn die minimale Faktorlänge unter 8 sinkt bei 32-Bit Hashwerte \ref{32prot}.
+Ich vermute, dass der  höhere Speicherbedarf für 32Bit Hashwerten gegenüber 64Bit Werten aus der Speicherallokation der Hashmap resultieren. Es ist als ein entscheidendes Ergebnis zu bewerten da es zeigt, dass kleinere Hashwerte nicht unbedingt in kleinerem Speicherbedarf resultiert.\\
+Des Weiteren überschreiten wir das vierfache der Eingabegröße nur wenn die minimale Faktorlänge unter 16 Byte sinkt. Dies entspricht auch meinen theoretischen Abschätzungen, für den worstcase:
+\begin{equation}\nonumber
+	n\leq(n/threshold) * 6Byte * 2 \rightarrow  threshold\leq12
+\end{equation} 
+ Wobei \glqq 2\grqq{} der Overhead einer Hashmap ist \cite{overhead}.\\ 
+Groups müssen wir hier nicht betrachten, da eine Group  immer mindestens zwei Faktoren darstellt oder wenn sie nur einen darstellt im nächsten Schritt gelöscht wird. Daher ist der Speicherbedarf für Groups immer kleiner gleich dem Speicherbedarf der Chains. Es ist zu beachten, dass dies nur im  worstcase gilt wenn jede Chain nur einen Faktor darstellt, sollten Chains mehrere Faktoren enthalten kann der Speicherbedarf der Groups größer sein.\\
+Wenn wir die Factors mit in Betracht ziehen erhalten wir das gleiche Ergebnis. Ein Factor benötigt 12Byte, da wir sie aber nie in etwas anderem als einen Vektor halten und damit konstanten Overhead haben, gilt hier auch:
+\begin{equation}\nonumber
+	n\leq(n/threshold) * 12Byte \rightarrow threshold\leq12
+\end{equation}
+Daraus folgt, dass wir für minimale Faktorlängen kleiner 16 den gewünschten Speicherbedarf nicht mehr garantieren können.\\
+Gzip's benötigter Speicher liegt deutlich unter allen anderen Werten mit weniger als 1MB für alle Eingaben. Für gzip scheinen  alle getesteten Eingaben gleich viel Speicher zu benötigen. Außerdem scheint die Eingabegröße nicht mit einzugehen.\\
+Lzss\_lcp benötigt  minimal soviel Speicher wie die Implementation maximal. Damit liegen wir immer deutlich unter lzss\_lcp.\\
+Eine interessante Beobachtung ist es wie viele Faktoren bereits vor der Suche gefunden werden.
+Betrachten wir die Eingabe proteins.200MB mit maximaler Faktorlänge von 8 und minimaler Länge von 4, so sehen wir, dass wir in der Initialisierung 26214398 Chains generieren. Die Hashmap mit der wir suchen enthält aber nur 20010332 Einträge. Daraus können wir schließen das 6204066 Faktoren als Quellposition  die Position vorheriger Chains haben.
+
+
+
+
+\begin{multicols}{2}
+	\texttt{gzip:}
+	\begin{outline}
+		\1[]
+		\2[] sdna.200MB:  7,432MB
+		\2[] proteins.200MB: 7,432MB
+		\2[] english.200MB: 7,432MB
+	\end{outline}
+	\columnbreak
+		\texttt{  }
+	\begin{outline}
+		\1[]
+			\2[] dblp.xml.200MB: 7,432MB
+		\2[] einstein.de.txt: 7,432MB
+		\2[] random.100MB: 7,432MB
+	
+	\end{outline}
+\end{multicols}
+
+\begin{multicols}{2}
+	\texttt{lzss\_lcp:}
+	\begin{outline}
+		\1[]
+		\2[] sdna.200MB:  3067MB
+		\2[] proteins.200MB: 3040MB
+		\2[] english.200MB: 3145MB
+	\end{outline}
+	\columnbreak
+	\texttt{  }
+	\begin{outline}
+		\1[]
+			\2[] dblp.xml.200MB: 2909MB
+		\2[] einstein.de.txt: 1356MB
+		\2[] random.100MB: 1310MB
+	
+	\end{outline}
+\end{multicols}
+
+%%%%%%%dna
+\begin{table}[h]
+	\caption{32Bit-Hash Speicherbedarf sdna.200MB in MB \emph{farbig}}
+	\label{32dna}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			threshold &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}210 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}211 & \cellcolor[HTML]{99E600}211 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}212 & \cellcolor[HTML]{99E600}212 & \cellcolor[HTML]{99E600}212 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}215 & \cellcolor[HTML]{99E600}215 & \cellcolor[HTML]{99E600}215 & \cellcolor[HTML]{99E600}215 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}222 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}309 & \cellcolor[HTML]{99E600}309 & \cellcolor[HTML]{99E600}309 & \cellcolor[HTML]{99E600}309 & \cellcolor[HTML]{99E600}309 & \cellcolor[HTML]{99E600}309 & \cellcolor[HTML]{99E600}309 & \cellcolor[HTML]{99E600}309 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{E69900}408 & \cellcolor[HTML]{E69900}408 & \cellcolor[HTML]{E69900}408 & \cellcolor[HTML]{E69900}408 & \cellcolor[HTML]{E69900}408 & \cellcolor[HTML]{E69900}408 & \cellcolor[HTML]{E69900}408 & \cellcolor[HTML]{E69900}408 & \cellcolor[HTML]{E69900}408 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{E69900}591 & \cellcolor[HTML]{E69900}591 & \cellcolor[HTML]{E69900}591 & \cellcolor[HTML]{E69900}591 & \cellcolor[HTML]{E69900}591 & \cellcolor[HTML]{E69900}591 & \cellcolor[HTML]{E69900}591 & \cellcolor[HTML]{E69900}591 & \cellcolor[HTML]{E69900}591 & \cellcolor[HTML]{E69900}591 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{E60000}659 & \cellcolor[HTML]{E60000}661 & \cellcolor[HTML]{E60000}661 & \cellcolor[HTML]{E60000}661 & \cellcolor[HTML]{E60000}661 & \cellcolor[HTML]{E60000}661 & \cellcolor[HTML]{E60000}661 & \cellcolor[HTML]{E60000}661 & \cellcolor[HTML]{E60000}661 & \cellcolor[HTML]{E60000}661 & \cellcolor[HTML]{E60000}661 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{E60000}714 & \cellcolor[HTML]{9900E6}804 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{4C00E6}1216 & \cellcolor[HTML]{E60000}714 & \cellcolor[HTML]{9900E6}804 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 & \cellcolor[HTML]{9900E6}806 \\ \hline
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+
+\begin{table}[h]
+	\caption{64Bit Hash Speicherbedarf sdna.200MB in MB \emph{farbig}}
+	\label{64dna}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrrr}
+			threshold &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}210 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}211 & \cellcolor[HTML]{99E600}211 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}213 & \cellcolor[HTML]{99E600}213 & \cellcolor[HTML]{99E600}213 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}217 & \cellcolor[HTML]{99E600}217 & \cellcolor[HTML]{99E600}217 & \cellcolor[HTML]{99E600}217 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}225 & \cellcolor[HTML]{99E600}225 & \cellcolor[HTML]{99E600}225 & \cellcolor[HTML]{99E600}225 & \cellcolor[HTML]{99E600}225 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}240 & \cellcolor[HTML]{99E600}240 & \cellcolor[HTML]{99E600}240 & \cellcolor[HTML]{99E600}240 & \cellcolor[HTML]{99E600}240 & \cellcolor[HTML]{99E600}240 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}272 & \cellcolor[HTML]{99E600}272 & \cellcolor[HTML]{99E600}272 & \cellcolor[HTML]{99E600}272 & \cellcolor[HTML]{99E600}272 & \cellcolor[HTML]{99E600}272 & \cellcolor[HTML]{99E600}272 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}335 & \cellcolor[HTML]{99E600}335 & \cellcolor[HTML]{99E600}334 & \cellcolor[HTML]{99E600}334 & \cellcolor[HTML]{99E600}334 & \cellcolor[HTML]{99E600}334 & \cellcolor[HTML]{99E600}334 & \cellcolor[HTML]{99E600}334 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{E69900}455 & \cellcolor[HTML]{E69900}454 & \cellcolor[HTML]{E69900}454 & \cellcolor[HTML]{E69900}454 & \cellcolor[HTML]{E69900}454 & \cellcolor[HTML]{E69900}454 & \cellcolor[HTML]{E69900}454 & \cellcolor[HTML]{E69900}454 & \cellcolor[HTML]{E69900}454 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{E60000}687 & \cellcolor[HTML]{E60000}687 & \cellcolor[HTML]{E60000}686 & \cellcolor[HTML]{E60000}686 & \cellcolor[HTML]{E60000}685 & \cellcolor[HTML]{E60000}685 & \cellcolor[HTML]{E60000}685 & \cellcolor[HTML]{E60000}685 & \cellcolor[HTML]{E60000}685 & \cellcolor[HTML]{E60000}685 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{E60000}790 & \cellcolor[HTML]{E60000}795 & \cellcolor[HTML]{E60000}796 & \cellcolor[HTML]{E60000}795 & \cellcolor[HTML]{E60000}795 & \cellcolor[HTML]{E60000}795 & \cellcolor[HTML]{E60000}795 & \cellcolor[HTML]{E60000}795 & \cellcolor[HTML]{E60000}795 & \cellcolor[HTML]{E60000}795 & \cellcolor[HTML]{E60000}795 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{E60000}715 & \cellcolor[HTML]{9900E6}820 & \cellcolor[HTML]{9900E6}825 & \cellcolor[HTML]{9900E6}825 & \cellcolor[HTML]{9900E6}825 & \cellcolor[HTML]{9900E6}824 & \cellcolor[HTML]{9900E6}824 & \cellcolor[HTML]{9900E6}824 & \cellcolor[HTML]{9900E6}824 & \cellcolor[HTML]{9900E6}824 & \cellcolor[HTML]{9900E6}824 & \cellcolor[HTML]{9900E6}824 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{4C00E6}1216 & \cellcolor[HTML]{E60000}715 & \cellcolor[HTML]{9900E6}820 & \cellcolor[HTML]{9900E6}825 & \cellcolor[HTML]{9900E6}825 & \cellcolor[HTML]{9900E6}825 & \cellcolor[HTML]{9900E6}824 & \cellcolor[HTML]{9900E6}824 & \cellcolor[HTML]{9900E6}824 & \cellcolor[HTML]{9900E6}824 & \cellcolor[HTML]{9900E6}824 & \cellcolor[HTML]{9900E6}824 & \cellcolor[HTML]{9900E6}824 \\ \hline
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+
+%%%%%%%%%%pro
+\begin{table}[h]
+	\caption{32Bit-Hash maximaler Speicherbedarf proteins.200MB \emph{farbig}}
+	\label{32prot}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{l|rrrrrrrrrrrrr}
+			\multicolumn{1}{l}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}210 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}211 & \cellcolor[HTML]{99E600}211 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}212 & \cellcolor[HTML]{99E600}212 & \cellcolor[HTML]{99E600}212 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}215 & \cellcolor[HTML]{99E600}215 & \cellcolor[HTML]{99E600}215 & \cellcolor[HTML]{99E600}215 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}222 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}308 & \cellcolor[HTML]{99E600}308 & \cellcolor[HTML]{99E600}308 & \cellcolor[HTML]{99E600}308 & \cellcolor[HTML]{99E600}308 & \cellcolor[HTML]{99E600}308 & \cellcolor[HTML]{99E600}308 & \cellcolor[HTML]{99E600}308 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{E69900}402 & \cellcolor[HTML]{E69900}402 & \cellcolor[HTML]{E69900}402 & \cellcolor[HTML]{E69900}402 & \cellcolor[HTML]{E69900}402 & \cellcolor[HTML]{E69900}402 & \cellcolor[HTML]{E69900}402 & \cellcolor[HTML]{E69900}402 & \cellcolor[HTML]{E69900}402 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{E69900}579 & \cellcolor[HTML]{E69900}580 & \cellcolor[HTML]{E69900}578 & \cellcolor[HTML]{E69900}578 & \cellcolor[HTML]{E69900}578 & \cellcolor[HTML]{E69900}578 & \cellcolor[HTML]{E69900}578 & \cellcolor[HTML]{E69900}578 & \cellcolor[HTML]{E69900}578 & \cellcolor[HTML]{E69900}578 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{9900E6}928 & \cellcolor[HTML]{9900E6}925 & \cellcolor[HTML]{9900E6}924 & \cellcolor[HTML]{9900E6}924 & \cellcolor[HTML]{9900E6}925 & \cellcolor[HTML]{9900E6}924 & \cellcolor[HTML]{9900E6}924 & \cellcolor[HTML]{9900E6}925 & \cellcolor[HTML]{9900E6}925 & \cellcolor[HTML]{9900E6}925 & \cellcolor[HTML]{9900E6}925 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{4C00E6}1123 & \cellcolor[HTML]{4C00E6}1144 & \cellcolor[HTML]{4C00E6}1148 & \cellcolor[HTML]{4C00E6}1149 & \cellcolor[HTML]{4C00E6}1149 & \cellcolor[HTML]{4C00E6}1149 & \cellcolor[HTML]{4C00E6}1149 & \cellcolor[HTML]{4C00E6}1149 & \cellcolor[HTML]{4C00E6}1149 & \cellcolor[HTML]{4C00E6}1149 & \cellcolor[HTML]{4C00E6}1149 & \cellcolor[HTML]{4C00E6}1149 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{4C00E6}1222 & \cellcolor[HTML]{4C00E6}1355 & \cellcolor[HTML]{4C00E6}1363 & \cellcolor[HTML]{4C00E6}1367 & \cellcolor[HTML]{4C00E6}1368 & \cellcolor[HTML]{4C00E6}1368 & \cellcolor[HTML]{4C00E6}1368 & \cellcolor[HTML]{4C00E6}1368 & \cellcolor[HTML]{4C00E6}1368 & \cellcolor[HTML]{4C00E6}1368 & \cellcolor[HTML]{4C00E6}1368 & \cellcolor[HTML]{4C00E6}1368 & \cellcolor[HTML]{4C00E6}1368 \\ \cline{1-1}
+			window & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14}
+		\end{tabular}
+	}
+\end{table}
+
+
+\begin{table}[h]
+	\caption{64Bit Hash Speicherbedarf proteins.200MB in MB \emph{farbig}}
+	\label{64pro}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			threshold &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}210 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}211 & \cellcolor[HTML]{99E600}211 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}213 & \cellcolor[HTML]{99E600}213 & \cellcolor[HTML]{99E600}213 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}217 & \cellcolor[HTML]{99E600}217 & \cellcolor[HTML]{99E600}217 & \cellcolor[HTML]{99E600}217 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}225 & \cellcolor[HTML]{99E600}224 & \cellcolor[HTML]{99E600}224 & \cellcolor[HTML]{99E600}224 & \cellcolor[HTML]{99E600}224 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}239 & \cellcolor[HTML]{99E600}239 & \cellcolor[HTML]{99E600}239 & \cellcolor[HTML]{99E600}239 & \cellcolor[HTML]{99E600}239 & \cellcolor[HTML]{99E600}239 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}268 & \cellcolor[HTML]{99E600}266 & \cellcolor[HTML]{99E600}266 & \cellcolor[HTML]{99E600}265 & \cellcolor[HTML]{99E600}265 & \cellcolor[HTML]{99E600}265 & \cellcolor[HTML]{99E600}265 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}320 & \cellcolor[HTML]{99E600}317 & \cellcolor[HTML]{99E600}315 & \cellcolor[HTML]{99E600}315 & \cellcolor[HTML]{99E600}315 & \cellcolor[HTML]{99E600}315 & \cellcolor[HTML]{99E600}315 & \cellcolor[HTML]{99E600}315 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{E69900}425 & \cellcolor[HTML]{E69900}409 & \cellcolor[HTML]{E69900}405 & \cellcolor[HTML]{E69900}403 & \cellcolor[HTML]{E69900}403 & \cellcolor[HTML]{E69900}403 & \cellcolor[HTML]{E69900}403 & \cellcolor[HTML]{E69900}403 & \cellcolor[HTML]{E69900}403 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{E60000}617 & \cellcolor[HTML]{E69900}589 & \cellcolor[HTML]{E69900}573 & \cellcolor[HTML]{E69900}570 & \cellcolor[HTML]{E69900}568 & \cellcolor[HTML]{E69900}567 & \cellcolor[HTML]{E69900}567 & \cellcolor[HTML]{E69900}567 & \cellcolor[HTML]{E69900}567 & \cellcolor[HTML]{E69900}567 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{4C00E6}1004 & \cellcolor[HTML]{9900E6}922 & \cellcolor[HTML]{9900E6}893 & \cellcolor[HTML]{9900E6}878 & \cellcolor[HTML]{9900E6}874 & \cellcolor[HTML]{9900E6}873 & \cellcolor[HTML]{9900E6}873 & \cellcolor[HTML]{9900E6}873 & \cellcolor[HTML]{9900E6}873 & \cellcolor[HTML]{9900E6}873 & \cellcolor[HTML]{9900E6}873 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{4C00E6}1386 & \cellcolor[HTML]{4C00E6}1659 & \cellcolor[HTML]{9900E6}922 & \cellcolor[HTML]{9900E6}893 & \cellcolor[HTML]{9900E6}878 & \cellcolor[HTML]{9900E6}874 & \cellcolor[HTML]{9900E6}873 & \cellcolor[HTML]{9900E6}873 & \cellcolor[HTML]{9900E6}873 & \cellcolor[HTML]{9900E6}873 & \cellcolor[HTML]{9900E6}873 & \cellcolor[HTML]{9900E6}873 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{4C00E6}1224 & \cellcolor[HTML]{4C00E6}1418 & \cellcolor[HTML]{4C00E6}1657 & \cellcolor[HTML]{4C00E6}1003 & \cellcolor[HTML]{9900E6}981 & \cellcolor[HTML]{9900E6}969 & \cellcolor[HTML]{9900E6}967 & \cellcolor[HTML]{9900E6}965 & \cellcolor[HTML]{9900E6}965 & \cellcolor[HTML]{9900E6}965 & \cellcolor[HTML]{9900E6}965 & \cellcolor[HTML]{9900E6}965 & \cellcolor[HTML]{9900E6}965 \\ \hline
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+
+%%%%%%%%%eng
+\begin{table}[h]
+	\caption{32Bit-Hash maximaler Speicherbedarf english.200MB in MB \emph{farbig}}
+	\label{32eng}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{l|rrrrrrrrrrrrr}
+			\multicolumn{1}{l}{threshold} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}210 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}211 & \cellcolor[HTML]{99E600}211 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}212 & \cellcolor[HTML]{99E600}212 & \cellcolor[HTML]{99E600}212 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}215 & \cellcolor[HTML]{99E600}215 & \cellcolor[HTML]{99E600}215 & \cellcolor[HTML]{99E600}215 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}222 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}309 & \cellcolor[HTML]{99E600}309 & \cellcolor[HTML]{99E600}309 & \cellcolor[HTML]{99E600}309 & \cellcolor[HTML]{99E600}309 & \cellcolor[HTML]{99E600}309 & \cellcolor[HTML]{99E600}309 & \cellcolor[HTML]{99E600}309 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{E69900}409 & \cellcolor[HTML]{E69900}409 & \cellcolor[HTML]{E69900}409 & \cellcolor[HTML]{E69900}409 & \cellcolor[HTML]{E69900}409 & \cellcolor[HTML]{E69900}409 & \cellcolor[HTML]{E69900}409 & \cellcolor[HTML]{E69900}409 & \cellcolor[HTML]{E69900}409 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{E60000}602 & \cellcolor[HTML]{E60000}602 & \cellcolor[HTML]{E60000}602 & \cellcolor[HTML]{E60000}602 & \cellcolor[HTML]{E60000}602 & \cellcolor[HTML]{E60000}602 & \cellcolor[HTML]{E60000}602 & \cellcolor[HTML]{E60000}602 & \cellcolor[HTML]{E60000}602 & \cellcolor[HTML]{E60000}602 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{E60000}730 & \cellcolor[HTML]{E60000}729 & \cellcolor[HTML]{E60000}729 & \cellcolor[HTML]{E60000}729 & \cellcolor[HTML]{E60000}729 & \cellcolor[HTML]{E60000}729 & \cellcolor[HTML]{E60000}729 & \cellcolor[HTML]{E60000}729 & \cellcolor[HTML]{E60000}729 & \cellcolor[HTML]{E60000}729 & \cellcolor[HTML]{E60000}729 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{9900E6}869 & \cellcolor[HTML]{9900E6}937 & \cellcolor[HTML]{9900E6}937 & \cellcolor[HTML]{9900E6}937 & \cellcolor[HTML]{9900E6}937 & \cellcolor[HTML]{9900E6}937 & \cellcolor[HTML]{9900E6}937 & \cellcolor[HTML]{9900E6}937 & \cellcolor[HTML]{9900E6}937 & \cellcolor[HTML]{9900E6}937 & \cellcolor[HTML]{9900E6}937 & \cellcolor[HTML]{9900E6}937 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{4C00E6}1223 & \cellcolor[HTML]{9900E6}868 & \cellcolor[HTML]{9900E6}889 & \cellcolor[HTML]{9900E6}889 & \cellcolor[HTML]{9900E6}889 & \cellcolor[HTML]{9900E6}889 & \cellcolor[HTML]{9900E6}889 & \cellcolor[HTML]{9900E6}889 & \cellcolor[HTML]{9900E6}889 & \cellcolor[HTML]{9900E6}889 & \cellcolor[HTML]{9900E6}889 & \cellcolor[HTML]{9900E6}889 & \cellcolor[HTML]{9900E6}889 \\ \hline
+			window & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+
+\begin{table}[h]
+	\caption{64Bit Hash Speicherbedarf english.200MB in MB \emph{farbig}}
+	\label{64eng}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			threshold &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}210 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}211 & \cellcolor[HTML]{99E600}211 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}213 & \cellcolor[HTML]{99E600}213 & \cellcolor[HTML]{99E600}213 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}217 & \cellcolor[HTML]{99E600}216 & \cellcolor[HTML]{99E600}216 & \cellcolor[HTML]{99E600}216 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}224 & \cellcolor[HTML]{99E600}223 & \cellcolor[HTML]{99E600}223 & \cellcolor[HTML]{99E600}223 & \cellcolor[HTML]{99E600}223 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}238 & \cellcolor[HTML]{99E600}237 & \cellcolor[HTML]{99E600}236 & \cellcolor[HTML]{99E600}236 & \cellcolor[HTML]{99E600}236 & \cellcolor[HTML]{99E600}236 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}266 & \cellcolor[HTML]{99E600}263 & \cellcolor[HTML]{99E600}262 & \cellcolor[HTML]{99E600}261 & \cellcolor[HTML]{99E600}261 & \cellcolor[HTML]{99E600}261 & \cellcolor[HTML]{99E600}261 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}323 & \cellcolor[HTML]{99E600}317 & \cellcolor[HTML]{99E600}314 & \cellcolor[HTML]{99E600}312 & \cellcolor[HTML]{99E600}311 & \cellcolor[HTML]{99E600}311 & \cellcolor[HTML]{99E600}311 & \cellcolor[HTML]{99E600}311 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{E69900}437 & \cellcolor[HTML]{E69900}424 & \cellcolor[HTML]{E69900}417 & \cellcolor[HTML]{E69900}414 & \cellcolor[HTML]{E69900}412 & \cellcolor[HTML]{E69900}412 & \cellcolor[HTML]{E69900}411 & \cellcolor[HTML]{E69900}411 & \cellcolor[HTML]{E69900}411 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{E60000}657 & \cellcolor[HTML]{E60000}629 & \cellcolor[HTML]{E60000}616 & \cellcolor[HTML]{E60000}609 & \cellcolor[HTML]{E60000}606 & \cellcolor[HTML]{E60000}604 & \cellcolor[HTML]{E60000}604 & \cellcolor[HTML]{E60000}603 & \cellcolor[HTML]{E60000}603 & \cellcolor[HTML]{E60000}603 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{4C00E6}1162 & \cellcolor[HTML]{4C00E6}1084 & \cellcolor[HTML]{E60000}745 & \cellcolor[HTML]{E60000}728 & \cellcolor[HTML]{E60000}723 & \cellcolor[HTML]{E60000}718 & \cellcolor[HTML]{E60000}717 & \cellcolor[HTML]{E60000}716 & \cellcolor[HTML]{E60000}716 & \cellcolor[HTML]{E60000}716 & \cellcolor[HTML]{E60000}716 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{9900E6}878 & \cellcolor[HTML]{4C00E6}1024 & \cellcolor[HTML]{4C00E6}1154 & \cellcolor[HTML]{4C00E6}1096 & \cellcolor[HTML]{4C00E6}1087 & \cellcolor[HTML]{4C00E6}1084 & \cellcolor[HTML]{4C00E6}1081 & \cellcolor[HTML]{4C00E6}1080 & \cellcolor[HTML]{4C00E6}1080 & \cellcolor[HTML]{4C00E6}1080 & \cellcolor[HTML]{4C00E6}1080 & \cellcolor[HTML]{4C00E6}1080 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{4C00E6}1226 & \cellcolor[HTML]{9900E6}877 & \cellcolor[HTML]{4C00E6}1013 & \cellcolor[HTML]{4C00E6}1148 & \cellcolor[HTML]{4C00E6}1109 & \cellcolor[HTML]{4C00E6}1076 & \cellcolor[HTML]{4C00E6}1071 & \cellcolor[HTML]{4C00E6}1070 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 \\ \cline{1-1}
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+
+%%%%%%%%%%%xml
+\begin{table}[h]
+	\caption{32Bit-Hash Speicherbedarf dblp.xml.200MB in MB \emph{farbig}}
+	\label{32xml}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			threshold &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}210 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}211 & \cellcolor[HTML]{99E600}211 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}212 & \cellcolor[HTML]{99E600}212 & \cellcolor[HTML]{99E600}212 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}215 & \cellcolor[HTML]{99E600}215 & \cellcolor[HTML]{99E600}215 & \cellcolor[HTML]{99E600}215 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}222 & \cellcolor[HTML]{99E600}222 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 & \cellcolor[HTML]{99E600}234 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 & \cellcolor[HTML]{99E600}259 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}308 & \cellcolor[HTML]{99E600}308 & \cellcolor[HTML]{99E600}308 & \cellcolor[HTML]{99E600}308 & \cellcolor[HTML]{99E600}308 & \cellcolor[HTML]{99E600}308 & \cellcolor[HTML]{99E600}308 & \cellcolor[HTML]{99E600}308 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}378 & \cellcolor[HTML]{99E600}379 & \cellcolor[HTML]{99E600}379 & \cellcolor[HTML]{99E600}379 & \cellcolor[HTML]{99E600}379 & \cellcolor[HTML]{99E600}379 & \cellcolor[HTML]{99E600}379 & \cellcolor[HTML]{99E600}379 & \cellcolor[HTML]{99E600}378 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{E69900}452 & \cellcolor[HTML]{E69900}449 & \cellcolor[HTML]{E69900}449 & \cellcolor[HTML]{E69900}449 & \cellcolor[HTML]{E69900}449 & \cellcolor[HTML]{E69900}449 & \cellcolor[HTML]{E69900}449 & \cellcolor[HTML]{E69900}449 & \cellcolor[HTML]{E69900}449 & \cellcolor[HTML]{E69900}449 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{E69900}528 & \cellcolor[HTML]{E60000}636 & \cellcolor[HTML]{E60000}640 & \cellcolor[HTML]{E60000}640 & \cellcolor[HTML]{E60000}640 & \cellcolor[HTML]{E60000}640 & \cellcolor[HTML]{E60000}640 & \cellcolor[HTML]{E60000}640 & \cellcolor[HTML]{E60000}640 & \cellcolor[HTML]{E60000}640 & \cellcolor[HTML]{E60000}640 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{E60000}783 & \cellcolor[HTML]{9900E6}978 & \cellcolor[HTML]{E60000}759 & \cellcolor[HTML]{E60000}759 & \cellcolor[HTML]{E60000}759 & \cellcolor[HTML]{E60000}759 & \cellcolor[HTML]{E60000}759 & \cellcolor[HTML]{E60000}759 & \cellcolor[HTML]{E60000}759 & \cellcolor[HTML]{E60000}759 & \cellcolor[HTML]{E60000}759 & \cellcolor[HTML]{E60000}759 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{4C00E6}1229 & \cellcolor[HTML]{E60000}760 & \cellcolor[HTML]{9900E6}979 & \cellcolor[HTML]{9900E6}924 & \cellcolor[HTML]{9900E6}909 & \cellcolor[HTML]{9900E6}909 & \cellcolor[HTML]{9900E6}909 & \cellcolor[HTML]{9900E6}909 & \cellcolor[HTML]{9900E6}909 & \cellcolor[HTML]{9900E6}909 & \cellcolor[HTML]{9900E6}909 & \cellcolor[HTML]{9900E6}909 & \cellcolor[HTML]{9900E6}909 \\ \hline
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+\begin{table}[h]
+	\caption{64Bit Hash Speicherbedarf dblp.xml.200MB in MB \emph{farbig}}
+	\label{64xml}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			threshold &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}210 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}211 & \cellcolor[HTML]{99E600}211 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}213 & \cellcolor[HTML]{99E600}213 & \cellcolor[HTML]{99E600}213 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}217 & \cellcolor[HTML]{99E600}217 & \cellcolor[HTML]{99E600}217 & \cellcolor[HTML]{99E600}217 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}225 & \cellcolor[HTML]{99E600}225 & \cellcolor[HTML]{99E600}225 & \cellcolor[HTML]{99E600}225 & \cellcolor[HTML]{99E600}225 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}240 & \cellcolor[HTML]{99E600}240 & \cellcolor[HTML]{99E600}240 & \cellcolor[HTML]{99E600}240 & \cellcolor[HTML]{99E600}240 & \cellcolor[HTML]{99E600}240 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}272 & \cellcolor[HTML]{99E600}272 & \cellcolor[HTML]{99E600}272 & \cellcolor[HTML]{99E600}272 & \cellcolor[HTML]{99E600}272 & \cellcolor[HTML]{99E600}272 & \cellcolor[HTML]{99E600}272 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}329 & \cellcolor[HTML]{99E600}329 & \cellcolor[HTML]{99E600}329 & \cellcolor[HTML]{99E600}329 & \cellcolor[HTML]{99E600}329 & \cellcolor[HTML]{99E600}329 & \cellcolor[HTML]{99E600}329 & \cellcolor[HTML]{99E600}329 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{E69900}405 & \cellcolor[HTML]{E69900}404 & \cellcolor[HTML]{E69900}404 & \cellcolor[HTML]{E69900}404 & \cellcolor[HTML]{E69900}404 & \cellcolor[HTML]{E69900}404 & \cellcolor[HTML]{E69900}404 & \cellcolor[HTML]{E69900}404 & \cellcolor[HTML]{E69900}404 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{E69900}466 & \cellcolor[HTML]{E69900}500 & \cellcolor[HTML]{E69900}488 & \cellcolor[HTML]{E69900}488 & \cellcolor[HTML]{E69900}488 & \cellcolor[HTML]{E69900}488 & \cellcolor[HTML]{E69900}488 & \cellcolor[HTML]{E69900}488 & \cellcolor[HTML]{E69900}488 & \cellcolor[HTML]{E69900}488 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{E69900}596 & \cellcolor[HTML]{E60000}675 & \cellcolor[HTML]{E60000}663 & \cellcolor[HTML]{E60000}665 & \cellcolor[HTML]{E60000}663 & \cellcolor[HTML]{E60000}665 & \cellcolor[HTML]{E60000}665 & \cellcolor[HTML]{E60000}665 & \cellcolor[HTML]{E60000}665 & \cellcolor[HTML]{E60000}665 & \cellcolor[HTML]{E60000}665 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{E60000}784 & \cellcolor[HTML]{E60000}638 & \cellcolor[HTML]{E60000}723 & \cellcolor[HTML]{E60000}732 & \cellcolor[HTML]{E60000}719 & \cellcolor[HTML]{E60000}721 & \cellcolor[HTML]{E60000}710 & \cellcolor[HTML]{E60000}710 & \cellcolor[HTML]{E60000}710 & \cellcolor[HTML]{E60000}733 & \cellcolor[HTML]{E60000}719 & \cellcolor[HTML]{E60000}710 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{4C00E6}1233 & \cellcolor[HTML]{E60000}784 & \cellcolor[HTML]{E60000}639 & \cellcolor[HTML]{E60000}724 & \cellcolor[HTML]{E60000}718 & \cellcolor[HTML]{E60000}721 & \cellcolor[HTML]{E60000}715 & \cellcolor[HTML]{E60000}721 & \cellcolor[HTML]{E60000}721 & \cellcolor[HTML]{E60000}721 & \cellcolor[HTML]{E60000}715 & \cellcolor[HTML]{E60000}721 & \cellcolor[HTML]{E60000}733 \\ \hline
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+
+%%%%%%%%%%ein
+\begin{table}[h]
+	\caption{32Bit Hash Speicherbedarf für einstein.de.txt in MB \emph{farbig}}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			threshold &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16384} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}93 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}93 & \cellcolor[HTML]{99E600}93 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}94 & \cellcolor[HTML]{99E600}94 & \cellcolor[HTML]{99E600}94 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{99E600}95 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}98 & \cellcolor[HTML]{99E600}98 & \cellcolor[HTML]{99E600}98 & \cellcolor[HTML]{99E600}98 & \cellcolor[HTML]{99E600}98 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}103 & \cellcolor[HTML]{99E600}103 & \cellcolor[HTML]{99E600}103 & \cellcolor[HTML]{99E600}103 & \cellcolor[HTML]{99E600}103 & \cellcolor[HTML]{99E600}103 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}109 & \cellcolor[HTML]{99E600}109 & \cellcolor[HTML]{99E600}109 & \cellcolor[HTML]{99E600}109 & \cellcolor[HTML]{99E600}109 & \cellcolor[HTML]{99E600}109 & \cellcolor[HTML]{99E600}109 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}115 & \cellcolor[HTML]{99E600}123 & \cellcolor[HTML]{99E600}122 & \cellcolor[HTML]{99E600}122 & \cellcolor[HTML]{99E600}122 & \cellcolor[HTML]{99E600}122 & \cellcolor[HTML]{99E600}122 & \cellcolor[HTML]{99E600}122 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}130 & \cellcolor[HTML]{99E600}121 & \cellcolor[HTML]{99E600}122 & \cellcolor[HTML]{99E600}124 & \cellcolor[HTML]{99E600}124 & \cellcolor[HTML]{99E600}124 & \cellcolor[HTML]{99E600}124 & \cellcolor[HTML]{99E600}124 & \cellcolor[HTML]{99E600}124 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}161 & \cellcolor[HTML]{99E600}135 & \cellcolor[HTML]{99E600}150 & \cellcolor[HTML]{99E600}149 & \cellcolor[HTML]{99E600}149 & \cellcolor[HTML]{99E600}148 & \cellcolor[HTML]{99E600}148 & \cellcolor[HTML]{99E600}148 & \cellcolor[HTML]{99E600}148 & \cellcolor[HTML]{99E600}148 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{E69900}222 & \cellcolor[HTML]{99E600}161 & \cellcolor[HTML]{99E600}139 & \cellcolor[HTML]{99E600}153 & \cellcolor[HTML]{99E600}154 & \cellcolor[HTML]{99E600}153 & \cellcolor[HTML]{99E600}153 & \cellcolor[HTML]{99E600}153 & \cellcolor[HTML]{99E600}153 & \cellcolor[HTML]{99E600}153 & \cellcolor[HTML]{99E600}153 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &   &  \cellcolor[HTML]{E60000}347 &  \cellcolor[HTML]{E69900}222 &  \cellcolor[HTML]{99E600}161 &  \cellcolor[HTML]{E69900}187 &  \cellcolor[HTML]{99E600}143 &  \cellcolor[HTML]{99E600}155 & \cellcolor[HTML]{99E600}155 &  \cellcolor[HTML]{99E600}156 &  \cellcolor[HTML]{99E600}156 &  \cellcolor[HTML]{99E600}156 &  \cellcolor[HTML]{99E600}156 &  \cellcolor[HTML]{99E600}156 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} &  \cellcolor[HTML]{4C00E6}596 &  \cellcolor[HTML]{E60000}347 &  \cellcolor[HTML]{E69900}222 &  \cellcolor[HTML]{99E600}161 &  \cellcolor[HTML]{E69900}187 &  \cellcolor[HTML]{99E600}144 &  \cellcolor[HTML]{99E600}155 &  \cellcolor[HTML]{99E600}155 &  \cellcolor[HTML]{99E600}155 &  \cellcolor[HTML]{99E600}155 &  \cellcolor[HTML]{99E600}155 &  \cellcolor[HTML]{99E600}155 &  \cellcolor[HTML]{99E600}155 \\ \hline
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8192} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+
+\begin{table}[h]
+	\caption{64Bit Hash Speicherbedarf einstein.de.txt in MB \emph{farbig}}
+	\label{64einstein}
+	\resizebox{16cm}{!}{
+		\begin{tabular}{lrrrrrrrrrrrrr}
+			threshold &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}93 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}93 & \cellcolor[HTML]{99E600}93 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}93 & \cellcolor[HTML]{99E600}93 & \cellcolor[HTML]{99E600}93 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{99E600}94 & \cellcolor[HTML]{99E600}93 & \cellcolor[HTML]{99E600}93 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}97 & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{99E600}94 & \cellcolor[HTML]{99E600}93 & \cellcolor[HTML]{99E600}93 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}101 & \cellcolor[HTML]{99E600}97 & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{99E600}94 & \cellcolor[HTML]{99E600}93 & \cellcolor[HTML]{99E600}93 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}108 & \cellcolor[HTML]{99E600}101 & \cellcolor[HTML]{99E600}97 & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{99E600}94 & \cellcolor[HTML]{99E600}93 & \cellcolor[HTML]{99E600}93 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}118 & \cellcolor[HTML]{99E600}108 & \cellcolor[HTML]{99E600}101 & \cellcolor[HTML]{99E600}97 & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{99E600}94 & \cellcolor[HTML]{99E600}94 & \cellcolor[HTML]{99E600}93 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{99E600}132 & \cellcolor[HTML]{99E600}118 & \cellcolor[HTML]{99E600}108 & \cellcolor[HTML]{99E600}101 & \cellcolor[HTML]{99E600}97 & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{99E600}94 & \cellcolor[HTML]{99E600}94 & \cellcolor[HTML]{99E600}94 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{99E600}163 & \cellcolor[HTML]{99E600}132 & \cellcolor[HTML]{99E600}118 & \cellcolor[HTML]{99E600}108 & \cellcolor[HTML]{99E600}101 & \cellcolor[HTML]{99E600}97 & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{99E600}94 & \cellcolor[HTML]{99E600}94 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{E69900}223 & \cellcolor[HTML]{99E600}163 & \cellcolor[HTML]{99E600}132 & \cellcolor[HTML]{99E600}118 & \cellcolor[HTML]{99E600}108 & \cellcolor[HTML]{99E600}102 & \cellcolor[HTML]{99E600}98 & \cellcolor[HTML]{99E600}96 & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{99E600}94 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{9900E6}348 & \cellcolor[HTML]{E69900}223 & \cellcolor[HTML]{99E600}163 & \cellcolor[HTML]{99E600}132 & \cellcolor[HTML]{99E600}118 & \cellcolor[HTML]{99E600}108 & \cellcolor[HTML]{99E600}102 & \cellcolor[HTML]{99E600}98 & \cellcolor[HTML]{99E600}98 & \cellcolor[HTML]{99E600}96 & \cellcolor[HTML]{99E600}95 & \cellcolor[HTML]{99E600}95 \\ \cline{1-1}
+			\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{4C00E6}597 & \cellcolor[HTML]{9900E6}348 & \cellcolor[HTML]{E69900}223 & \cellcolor[HTML]{99E600}163 & \cellcolor[HTML]{99E600}132 & \cellcolor[HTML]{99E600}118 & \cellcolor[HTML]{99E600}108 & \cellcolor[HTML]{99E600}102 & \cellcolor[HTML]{99E600}101 & \cellcolor[HTML]{99E600}98 & \cellcolor[HTML]{99E600}97 & \cellcolor[HTML]{99E600}96 & \cellcolor[HTML]{99E600}95 \\ \hline
+			\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+		\end{tabular}
+	}
+\end{table}
+
+
+%%%%%%%%%%%random
+
+\begin{table}[h]
+	\caption{64Bit Hash Speicherbedarf für random.100MB in MB \emph{farbig}}
+	\label{tab:my-table}
+	\resizebox{16cm}{!}{
+	\begin{tabular}{lrrrrrrrrrrrrr}
+		threshold &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+		\multicolumn{1}{|l|}{16384} &  &  &  &  &  &  &  &  &  &  &  &  &  \\ \cline{1-1}
+		\multicolumn{1}{|l|}{8192} &  &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}101 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{4096} &  &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}101 & \cellcolor[HTML]{99E600}101 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{2048} &  &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}102 & \cellcolor[HTML]{99E600}102 & \cellcolor[HTML]{99E600}102 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{1024} &  &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}104 & \cellcolor[HTML]{99E600}104 & \cellcolor[HTML]{99E600}104 & \cellcolor[HTML]{99E600}104 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{512} &  &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}108 & \cellcolor[HTML]{99E600}108 & \cellcolor[HTML]{99E600}108 & \cellcolor[HTML]{99E600}108 & \cellcolor[HTML]{99E600}108 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{256} &  &  &  &  &  &  &  & \cellcolor[HTML]{99E600}115 & \cellcolor[HTML]{99E600}115 & \cellcolor[HTML]{99E600}115 & \cellcolor[HTML]{99E600}115 & \cellcolor[HTML]{99E600}115 & \cellcolor[HTML]{99E600}115 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{128} &  &  &  &  &  &  & \cellcolor[HTML]{99E600}131 & \cellcolor[HTML]{99E600}131 & \cellcolor[HTML]{99E600}131 & \cellcolor[HTML]{99E600}131 & \cellcolor[HTML]{99E600}131 & \cellcolor[HTML]{99E600}131 & \cellcolor[HTML]{99E600}131 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{64} &  &  &  &  &  & \cellcolor[HTML]{99E600}161 & \cellcolor[HTML]{99E600}161 & \cellcolor[HTML]{99E600}161 & \cellcolor[HTML]{99E600}161 & \cellcolor[HTML]{99E600}161 & \cellcolor[HTML]{99E600}161 & \cellcolor[HTML]{99E600}161 & \cellcolor[HTML]{99E600}161 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{32} &  &  &  &  & \cellcolor[HTML]{E69900}220 & \cellcolor[HTML]{E69900}220 & \cellcolor[HTML]{E69900}220 & \cellcolor[HTML]{E69900}220 & \cellcolor[HTML]{E69900}220 & \cellcolor[HTML]{E69900}220 & \cellcolor[HTML]{E69900}220 & \cellcolor[HTML]{E69900}220 & \cellcolor[HTML]{E69900}220 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{16} &  &  &  & \cellcolor[HTML]{E60000}341 & \cellcolor[HTML]{E60000}341 & \cellcolor[HTML]{E60000}341 & \cellcolor[HTML]{E60000}341 & \cellcolor[HTML]{E60000}341 & \cellcolor[HTML]{E60000}341 & \cellcolor[HTML]{E60000}341 & \cellcolor[HTML]{E60000}341 & \cellcolor[HTML]{E60000}341 & \cellcolor[HTML]{E60000}341 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{8} &  &  & \cellcolor[HTML]{4C00E6}583 & \cellcolor[HTML]{4C00E6}583 & \cellcolor[HTML]{4C00E6}583 & \cellcolor[HTML]{4C00E6}583 & \cellcolor[HTML]{4C00E6}583 & \cellcolor[HTML]{4C00E6}583 & \cellcolor[HTML]{4C00E6}583 & \cellcolor[HTML]{4C00E6}583 & \cellcolor[HTML]{4C00E6}583 & \cellcolor[HTML]{4C00E6}583 & \cellcolor[HTML]{4C00E6}583 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{4} &  & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 \\ \cline{1-1}
+		\multicolumn{1}{|l|}{2} & \cellcolor[HTML]{4C00E6}1119 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 & \cellcolor[HTML]{4C00E6}1069 \\ \hline
+		\multicolumn{1}{l|}{window} & \multicolumn{1}{l|}{4} & \multicolumn{1}{l|}{8} & \multicolumn{1}{l|}{16} & \multicolumn{1}{l|}{32} & \multicolumn{1}{l|}{64} & \multicolumn{1}{l|}{128} & \multicolumn{1}{l|}{256} & \multicolumn{1}{l|}{512} & \multicolumn{1}{l|}{1024} & \multicolumn{1}{l|}{2048} & \multicolumn{1}{l|}{4096} & \multicolumn{1}{l|}{8129} & \multicolumn{1}{l|}{16384} \\ \cline{2-14} 
+	\end{tabular}
+}
+\end{table}
